@@ -31,11 +31,15 @@
        .then((response) => {
          response.json()
            .then((geojson) => {
-             var map = L.map('map').setView([51.505, -0.09], 2);
+             var map = L.map('map').setView([51.505, -0.09], 4);
              L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-               id: 'mapbox.streets',
+               id: 'mapbox.light',
                accessToken: MAPBOX_ACCESS_TOKEN
              }).addTo(map);
+             geojson = {
+               type: 'FeatureCollection',
+               features: geojson.features.slice(1,10)
+             }
              L.geoJSON(geojson).addTo(map);
            });
        });
