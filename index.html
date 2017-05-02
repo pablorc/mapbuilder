@@ -54,8 +54,8 @@ var GEOJSON_URL = 'https://xavijam.carto.com/api/v2/sql?q=SELECT%20*%20FROM%20ne
 var MAP_DOM_ID = 'map';
 
 
-var Map = function(geojson) {
-  this.geojson = geojson;
+var Map = function(points) {
+  this.points = points;
 };
 
 Map.prototype.render = function(domID) {
@@ -64,18 +64,34 @@ Map.prototype.render = function(domID) {
       id: 'mapbox.light',
       accessToken: MAPBOX_ACCESS_TOKEN
       }).addTo(map);
-  var partialGeojson = {
-    type: 'FeatureCollection',
-    features: this.geojson.features.slice(1,10)
-  }
-  L.geoJSON(partialGeojson).addTo(map);
+  L.geoJSON(this.points.toGeoJSON()).addTo(map);
 };
+
+var Point = function(attrs) {
+  this.attrs = attrs;
+};
+
+Point.prototype.toGeoJSON = function() {
+  return this.attrs;
+}
+
+var Points = function(points) {
+  this.points = points;
+}
+
+Points.prototype.toGeoJSON = function() {
+  return {
+    type: 'FeatureCollection',
+    features: this.points.map((point) => point.toGeoJSON())
+  }
+}
 
 self.fetch(GEOJSON_URL)
   .then((response) => {
     response.json()
       .then((geojson) => {
-        new Map(geojson).render(MAP_DOM_ID);
+        var points = new Points(geojson.features.slice(1,20).map((point) => new Point(point)));
+        new Map(points).render(MAP_DOM_ID);
       });
   });
       </script>
