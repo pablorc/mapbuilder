@@ -39,6 +39,8 @@
         flex-grow: 0;
         flex-shrink: 0;
         width: var(--sidebar-width);
+        max-height: 100vh;
+        overflow: auto;
       }
     </style>
   </head>
@@ -69,6 +71,7 @@ Map.prototype.render = function(domID) {
 
 var Point = function(attrs) {
   this.attrs = attrs;
+  this.isShown = false;
 };
 
 Point.prototype.toGeoJSON = function() {
@@ -99,7 +102,11 @@ var PointView = function(point) {
 }
 
 PointView.prototype.render = function() {
-  return "<li>" + this.point.attrs.properties.name + "</li>";
+  var isShown = this.point.isShown ? ':)' : ':('
+  var li = document.createElement('li');
+  var textNode = document.createTextNode(isShown + " " + this.point.attrs.properties.name);
+  li.appendChild(textNode);
+  return li;
 }
 
 var PointsView = function(points) {
@@ -108,7 +115,8 @@ var PointsView = function(points) {
 
 PointsView.prototype.render = function(domId) {
   var renderedPoints = this.points.map((point) => new PointView(point).render());
-  document.getElementById(domId).innerHTML = "<ul>" + renderedPoints.join('') + "</ul>";
+  var append = (child) => document.getElementById(domId).appendChild(child);
+  renderedPoints.map((child) => append(child));
 }
 
 self.fetch(GEOJSON_URL)
