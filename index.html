@@ -86,11 +86,16 @@ Points.prototype.toGeoJSON = function() {
   }
 }
 
+Points.prototype.slice = function(start, end) {
+  return new Points(this.points.slice(start, end));
+};
+
 self.fetch(GEOJSON_URL)
   .then((response) => {
     response.json()
       .then((geojson) => {
-        var points = new Points(geojson.features.slice(1,20).map((point) => new Point(point)));
+        var pointLibrary = new Points(geojson.features.map((point) => new Point(point)));
+        var points = pointLibrary.slice(1,30);
         new Map(points).render(MAP_DOM_ID);
       });
   });
