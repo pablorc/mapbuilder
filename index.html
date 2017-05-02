@@ -43,7 +43,7 @@
     </style>
   </head>
   <body class="builder">
-    <aside class="builder__sidebar"></aside>
+    <aside id="adder" class="builder__sidebar"></aside>
     <section id="map" class="builder__map" >
     </section>
       <aside class="builder__sidebar"></aside>
@@ -79,6 +79,10 @@ var Points = function(points) {
   this.points = points;
 }
 
+Points.prototype.map = function(cb) {
+  return this.points.map(cb);
+};
+
 Points.prototype.toGeoJSON = function() {
   return {
     type: 'FeatureCollection',
@@ -90,6 +94,23 @@ Points.prototype.slice = function(start, end) {
   return new Points(this.points.slice(start, end));
 };
 
+var PointView = function(point) {
+  this.point = point;
+}
+
+PointView.prototype.render = function() {
+  return "<li>" + this.point.attrs.properties.name + "</li>";
+}
+
+var PointsView = function(points) {
+  this.points = points;
+}
+
+PointsView.prototype.render = function(domId) {
+  var renderedPoints = this.points.map((point) => new PointView(point).render());
+  document.getElementById(domId).innerHTML = "<ul>" + renderedPoints.join('') + "</ul>";
+}
+
 self.fetch(GEOJSON_URL)
   .then((response) => {
     response.json()
@@ -97,6 +118,7 @@ self.fetch(GEOJSON_URL)
         var pointLibrary = new Points(geojson.features.map((point) => new Point(point)));
         var points = pointLibrary.slice(1,30);
         new Map(points).render(MAP_DOM_ID);
+        new PointsView(pointLibrary).render('adder');
       });
   });
       </script>
