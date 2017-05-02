@@ -46,31 +46,38 @@
     <aside class="builder__sidebar"></aside>
     <section id="map" class="builder__map" >
     </section>
-    <aside class="builder__sidebar"></aside>
+      <aside class="builder__sidebar"></aside>
 
-    <script>
-     var MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoicGFibG9yYyIsImEiOiJjajI3djNyOXAwMGR3MndzMWV2cjJicHo3In0.EIxpAD7wO3gmdkqt4ozKbg';
-     var GEOJSON_URL = 'https://xavijam.carto.com/api/v2/sql?q=SELECT%20*%20FROM%20ne_10m_populated_places_simple&format=GeoJSON';
+      <script>
+var MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoicGFibG9yYyIsImEiOiJjajI3djNyOXAwMGR3MndzMWV2cjJicHo3In0.EIxpAD7wO3gmdkqt4ozKbg';
+var GEOJSON_URL = 'https://xavijam.carto.com/api/v2/sql?q=SELECT%20*%20FROM%20ne_10m_populated_places_simple&format=GeoJSON';
 
 
-     self.fetch(GEOJSON_URL)
-       .then((response) => {
-         response.json()
-           .then((geojson) => {
-             var map = L.map('map').setView([51.505, -0.09], 2);
-             L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-               id: 'mapbox.light',
-               accessToken: MAPBOX_ACCESS_TOKEN
-             }).addTo(map);
-             geojson = {
-               type: 'FeatureCollection',
-               features: geojson.features.slice(1,10)
-             }
-             L.geoJSON(geojson).addTo(map);
-           });
-       });
-    </script>
+var Map = function(geojson) {
+  this.geojson = geojson;
+};
 
+Map.prototype.render = function(domID) {
+  var map = L.map(domID).setView([51.505, -0.09], 2);
+  L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+      id: 'mapbox.light',
+      accessToken: MAPBOX_ACCESS_TOKEN
+      }).addTo(map);
+  var partialGeojson = {
+    type: 'FeatureCollection',
+    features: this.geojson.features.slice(1,10)
+  }
+  L.geoJSON(partialGeojson).addTo(map);
+};
+
+self.fetch(GEOJSON_URL)
+  .then((response) => {
+    response.json()
+      .then((geojson) => {
+        new Map(geojson).render('map');
+      });
+  });
+      </script>
   </body>
 </html>
 
