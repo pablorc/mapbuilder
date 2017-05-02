@@ -106,6 +106,7 @@ PointView.prototype.render = function() {
   var li = document.createElement('li');
   var textNode = document.createTextNode(isShown + " " + this.point.attrs.properties.name);
   li.appendChild(textNode);
+  li.addEventListener('click', () => console.log('click!!', this.point.attrs.properties.name));
   return li;
 }
 
