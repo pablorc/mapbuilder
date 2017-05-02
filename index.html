@@ -56,8 +56,8 @@ var GEOJSON_URL = 'https://xavijam.carto.com/api/v2/sql?q=SELECT%20*%20FROM%20ne
 var MAP_DOM_ID = 'map';
 
 
-var Map = function() {
-  this.layers = [];
+var Map = function(layers) {
+  this.layers = layers;
 };
 
 Map.prototype.render = function(domID) {
@@ -68,8 +68,8 @@ Map.prototype.render = function(domID) {
       }).addTo(this.map);
 };
 
-Map.prototype.addLayer = function(point) {
-  L.geoJSON(point.toGeoJSON()).addTo(this.map);
+Map.prototype.addLayer = function(layer) {
+  L.geoJSON(layer.toGeoJSON()).addTo(this.map);
 };
 
 var Point = function(attrs) {
@@ -81,23 +81,23 @@ Point.prototype.toGeoJSON = function() {
   return this.attrs;
 }
 
-var Points = function(points) {
-  this.points = points;
+var Layer = function(layer) {
+  this.layer = layer;
 }
 
-Points.prototype.map = function(cb) {
-  return this.points.map(cb);
+Layer.prototype.map = function(cb) {
+  return this.layer.map(cb);
 };
 
-Points.prototype.toGeoJSON = function() {
+Layer.prototype.toGeoJSON = function() {
   return {
     type: 'FeatureCollection',
-    features: this.points.map((point) => point.toGeoJSON())
+    features: this.layer.map((point) => point.toGeoJSON())
   }
 }
 
-Points.prototype.slice = function(start, end) {
-  return new Points(this.points.slice(start, end));
+Layer.prototype.slice = function(start, end) {
+  return new Layer(this.layer.slice(start, end));
 };
 
 var PointView = function(point, onToggleCallback) {
@@ -114,12 +114,12 @@ PointView.prototype.render = function() {
   return li;
 }
 
-var PointsView = function(points) {
-  this.points = points;
+var PointsView = function(layer) {
+  this.layer = layer;
 }
 
 PointsView.prototype.render = function(domId, onToggleCallback) {
-  var renderedPoints = this.points.map((point) => new PointView(point, onToggleCallback).render());
+  var renderedPoints = this.layer.map((point) => new PointView(point, onToggleCallback).render());
   var append = (child) => document.getElementById(domId).appendChild(child);
   renderedPoints.map((child) => append(child));
 }
@@ -128,12 +128,13 @@ self.fetch(GEOJSON_URL)
   .then((response) => {
     response.json()
       .then((geojson) => {
-        var pointLibrary = new Points(geojson.features.map((point) => new Point(point)));
-        var points = pointLibrary.slice(1,30);
-        var map = new Map(points)
+        var pointLibrary = new Layer(geojson.features.map((point) => new Point(point)));
+        var layer = pointLibrary.slice(1,30);
+        var layers = [];
+        var map = new Map(layers);
         map.render(MAP_DOM_ID);
         var onToggleCallback = function(pointSelected) {
-          map.addLayer(new Points([this.point]));
+          map.addLayer(new Layer([this.point]));
         };
         new PointsView(pointLibrary).render('adder', onToggleCallback);
       });
