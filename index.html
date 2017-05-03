@@ -85,10 +85,6 @@ var Layer = function(layer) {
   this.layer = layer;
 }
 
-Layer.prototype.map = function(cb) {
-  return this.layer.map(cb);
-};
-
 Layer.prototype.toGeoJSON = function() {
   return {
     type: 'FeatureCollection',
