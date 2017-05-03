@@ -111,8 +111,14 @@ var FeaturesView = function(features) {
 
 FeaturesView.prototype.render = function(domId, onToggleCallback) {
   var renderedPoints = this.features.map((feature) => new SelectFeatureView(feature, onToggleCallback).render());
-  var append = (child) => document.getElementById(domId).appendChild(child);
+  var ul = document.createElement('ul');
+  var append = (child) => ul.appendChild(child);
   renderedPoints.map((child) => append(child));
+  document.getElementById(domId).appendChild(ul);
+}
+
+var ListView = function(items) {
+  this.items = items;
 }
 
 self.fetch(GEOJSON_URL)
@@ -123,6 +129,7 @@ self.fetch(GEOJSON_URL)
         var layers = [];
         var map = new Map(layers);
         map.render(MAP_DOM_ID);
+
         var onToggleCallback = function(selectedFeature) {
           map.addLayer(new Layer([selectedFeature]));
         };
