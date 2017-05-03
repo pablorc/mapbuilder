@@ -63,7 +63,7 @@ var Map = function(layers) {
 Map.prototype.render = function(domID) {
   this.map = L.map(domID).setView([5,0], 2);
   L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-      id: 'mapbox.light',
+      id: 'mapbox.streets',
       accessToken: MAPBOX_ACCESS_TOKEN
       }).addTo(this.map);
 };
@@ -92,34 +92,29 @@ Layer.prototype.map = function(cb) {
 Layer.prototype.toGeoJSON = function() {
   return {
     type: 'FeatureCollection',
-    features: this.layer.map((point) => point.toGeoJSON())
+    features: this.layer.map((feature) => feature.toGeoJSON())
   }
 }
 
-Layer.prototype.slice = function(start, end) {
-  return new Layer(this.layer.slice(start, end));
-};
-
-var PointView = function(point, onToggleCallback) {
-  this.point = point;
+var SelectFeatureView = function(feature, onToggleCallback) {
+  this.feature = feature;
   this.onToggleCallback = onToggleCallback;
 }
 
-PointView.prototype.render = function() {
-  var isShown = this.point.isShown ? ':)' : ':('
+SelectFeatureView.prototype.render = function() {
   var li = document.createElement('li');
-  var textNode = document.createTextNode(isShown + " " + this.point.attrs.properties.name);
+  var textNode = document.createTextNode(this.feature.attrs.properties.name);
   li.appendChild(textNode);
-  li.addEventListener('click', () => this.onToggleCallback(this.point));
+  li.addEventListener('click', () => this.onToggleCallback(this.feature));
   return li;
 }
 
-var PointsView = function(layer) {
-  this.layer = layer;
+var FeaturesView = function(features) {
+  this.features = features;
 }
 
-PointsView.prototype.render = function(domId, onToggleCallback) {
-  var renderedPoints = this.layer.map((point) => new PointView(point, onToggleCallback).render());
+FeaturesView.prototype.render = function(domId, onToggleCallback) {
+  var renderedPoints = this.features.map((feature) => new SelectFeatureView(feature, onToggleCallback).render());
   var append = (child) => document.getElementById(domId).appendChild(child);
   renderedPoints.map((child) => append(child));
 }
@@ -128,15 +123,14 @@ self.fetch(GEOJSON_URL)
   .then((response) => {
     response.json()
       .then((geojson) => {
-        var pointLibrary = new Layer(geojson.features.map((point) => new Point(point)));
-        var layer = pointLibrary.slice(1,30);
+        var features = geojson.features.map((feature) => new Point(feature));
         var layers = [];
         var map = new Map(layers);
         map.render(MAP_DOM_ID);
-        var onToggleCallback = function(pointSelected) {
-          map.addLayer(new Layer([this.point]));
+        var onToggleCallback = function(selectedFeature) {
+          map.addLayer(new Layer([selectedFeature]));
         };
-        new PointsView(pointLibrary).render('adder', onToggleCallback);
+        new FeaturesView(features).render('adder', onToggleCallback);
       });
   });
       </script>
