@@ -1,0 +1,26 @@
+:root {
+  --sidebar-width: 20%;
+}
+
+.builder {
+  align-items: Stretch;
+  display: flex;
+  min-height: 100vh;
+  min-width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+.builder__map {
+  flex-grow: 1;
+  flex-shrink: 0;
+  width: calc(100% - (var(--sidebar-width) * 2));
+}
+
+.builder__sidebar {
+  flex-grow: 0;
+  flex-shrink: 0;
+  width: var(--sidebar-width);
+  max-height: 100vh;
+  overflow: auto;
+}

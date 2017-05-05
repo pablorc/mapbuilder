@@ -10,133 +10,25 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css"
                            integrity="sha512-07I2e+7D8p6he1SIM+1twR5TIrhUQn9+I6yjqD53JQjFiMf8EtC93ty0/5vJTZGF8aAocvHYNEDJajGdNx1IsQ=="
                            crossorigin=""/>
+    <link rel="stylesheet" href="styles.css"/>
+
     <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"
             integrity="sha512-A7vV8IFfih/D732iSSKi20u/ooOfj/AGehOKq0f4vLT1Zr2Y+RX7C+w8A1gaSasGtRUZpF/NZgzSAu4/Gc41Lg=="
             crossorigin=""></script>
     <script src='https://api.mapbox.com/mapbox-gl-js/v0.36.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v0.36.0/mapbox-gl.css' rel='stylesheet' />
-    <style>
-      :root {
-        --sidebar-width: 20%;
-      }
-
-      .builder {
-        align-items: Stretch;
-        display: flex;
-        min-height: 100vh;
-        min-width: 100%;
-        max-width: 100%;
-        margin: 0;
-      }
-
-      .builder__map {
-        flex-grow: 1;
-        flex-shrink: 0;
-        width: calc(100% - (var(--sidebar-width) * 2));
-      }
-
-      .builder__sidebar {
-        flex-grow: 0;
-        flex-shrink: 0;
-        width: var(--sidebar-width);
-        max-height: 100vh;
-        overflow: auto;
-      }
-    </style>
   </head>
   <body class="builder">
-    <aside id="adder" class="builder__sidebar"></aside>
+    <aside class="builder__sidebar">
+      <div id="layers"></div>
+      <hr />
+      <div id="features"></div>
+    </aside>
     <section id="map" class="builder__map" >
     </section>
       <aside class="builder__sidebar"></aside>
 
-      <script>
-var MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoicGFibG9yYyIsImEiOiJjajI3djNyOXAwMGR3MndzMWV2cjJicHo3In0.EIxpAD7wO3gmdkqt4ozKbg';
-var GEOJSON_URL = 'https://xavijam.carto.com/api/v2/sql?q=SELECT%20*%20FROM%20ne_10m_populated_places_simple&format=GeoJSON';
-var MAP_DOM_ID = 'map';
-
-
-var Map = function(layers) {
-  this.layers = layers;
-};
-
-Map.prototype.render = function(domID) {
-  this.map = L.map(domID).setView([5,0], 2);
-  L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-      id: 'mapbox.streets',
-      accessToken: MAPBOX_ACCESS_TOKEN
-      }).addTo(this.map);
-};
-
-Map.prototype.addLayer = function(layer) {
-  L.geoJSON(layer.toGeoJSON()).addTo(this.map);
-};
-
-var Point = function(attrs) {
-  this.attrs = attrs;
-  this.isShown = false;
-};
-
-Point.prototype.toGeoJSON = function() {
-  return this.attrs;
-}
-
-var Layer = function(layer) {
-  this.layer = layer;
-}
-
-Layer.prototype.toGeoJSON = function() {
-  return {
-    type: 'FeatureCollection',
-    features: this.layer.map((feature) => feature.toGeoJSON())
-  }
-}
-
-var SelectFeatureView = function(feature, onToggleCallback) {
-  this.feature = feature;
-  this.onToggleCallback = onToggleCallback;
-}
-
-SelectFeatureView.prototype.render = function() {
-  var li = document.createElement('li');
-  var textNode = document.createTextNode(this.feature.attrs.properties.name);
-  li.appendChild(textNode);
-  li.addEventListener('click', () => this.onToggleCallback(this.feature));
-  return li;
-}
-
-var FeaturesView = function(features) {
-  this.features = features;
-}
-
-FeaturesView.prototype.render = function(domId, onToggleCallback) {
-  var renderedPoints = this.features.map((feature) => new SelectFeatureView(feature, onToggleCallback).render());
-  var ul = document.createElement('ul');
-  var append = (child) => ul.appendChild(child);
-  renderedPoints.map((child) => append(child));
-  document.getElementById(domId).appendChild(ul);
-}
-
-var ListView = function(items) {
-  this.items = items;
-}
-
-self.fetch(GEOJSON_URL)
-  .then((response) => {
-    response.json()
-      .then((geojson) => {
-        var features = geojson.features.map((feature) => new Point(feature));
-        var layers = [];
-        var map = new Map(layers);
-        map.render(MAP_DOM_ID);
-
-        var onToggleCallback = function(selectedFeature) {
-          map.addLayer(new Layer([selectedFeature]));
-        };
-        new FeaturesView(features).render('adder', onToggleCallback);
-      });
-  });
-      </script>
+    <script src='main.js'></script>
   </body>
 </html>
 
