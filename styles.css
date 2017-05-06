@@ -1,5 +1,10 @@
 :root {
   --sidebar-width: 20%;
+  --backdrop-zindex: 100;
+}
+
+body {
+  margin: 0;
 }
 
 .builder {
@@ -8,13 +13,13 @@
   min-height: 100vh;
   min-width: 100%;
   max-width: 100%;
-  margin: 0;
 }
 
 .builder__map {
   flex-grow: 1;
   flex-shrink: 0;
   width: calc(100% - var(--sidebar-width));
+  z-index: calc(var(--backdrop-zindex) - 1 );
 }
 
 .builder__sidebar {
@@ -23,4 +28,26 @@
   width: var(--sidebar-width);
   max-height: 100vh;
   overflow: auto;
+}
+
+.backdrop {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: calc(var(--backdrop-zindex));
+
+  background-color: rgba(0, 0, 0, .3);
+}
+
+.lightbox {
+  height: 300px;
+  width: 300px;
+  z-index: calc(var(--backdrop-zindex) + 1);
+
+  background-color: #fff;
+  border-radius: 4px;
 }

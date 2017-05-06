@@ -18,7 +18,8 @@
     <script src='https://api.mapbox.com/mapbox-gl-js/v0.36.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v0.36.0/mapbox-gl.css' rel='stylesheet' />
   </head>
-  <body class="builder">
+  <body>
+    <div class="builder">
     <aside class="builder__sidebar">
       <div id="layers"></div>
       <hr />
@@ -26,6 +27,11 @@
     </aside>
     <section id="map" class="builder__map" >
     </section>
+    </div>
+    <div class="backdrop">
+      <div class="lightbox">
+      </div>
+    </div>
 
     <script src='main.js'></script>
   </body>
