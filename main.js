@@ -20,7 +20,6 @@ Map.prototype.addLayer = function(layer) {
 
 var Point = function(attrs) {
   this.attrs = attrs;
-  this.isShown = false;
 };
 
 Point.prototype.toGeoJSON = function() {
