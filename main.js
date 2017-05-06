@@ -2,6 +2,7 @@ const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoicGFibG9yYyIsImEiOiJjajI3djNyOXAwMGR3Mndz
 const GEOJSON_URL = 'https://xavijam.carto.com/api/v2/sql?q=SELECT%20*%20FROM%20ne_10m_populated_places_simple&format=GeoJSON';
 const MAP_DOM_ID = 'map';
 
+// Map
 const Map = function(layers) {
   this.layers = layers;
   layers.subscribe(this);
@@ -23,14 +24,17 @@ Map.prototype.addLayer = function(layer) {
   L.geoJSON(layer.toGeoJSON()).addTo(this.map);
 };
 
-const Point = function(attrs) {
+// Feature
+const Feature = function(attrs) {
   this.attrs = attrs;
 };
 
-Point.prototype.toGeoJSON = function() {
+Feature.prototype.toGeoJSON = function() {
   return this.attrs;
 }
 
+
+// Layer
 const Layer = function(layer) {
   this.layer = layer;
 }
@@ -91,7 +95,7 @@ const Layers = function() {
 };
 
 const start = (geojson) => {
-  const features = geojson.features.map((feature) => new Point(feature));
+  const features = geojson.features.map((feature) => new Feature(feature));
   const layers = Layers();
   const map = new Map(layers);
   map.render(MAP_DOM_ID);
