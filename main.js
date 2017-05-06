@@ -1,6 +1,7 @@
 const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoicGFibG9yYyIsImEiOiJjajI3djNyOXAwMGR3MndzMWV2cjJicHo3In0.EIxpAD7wO3gmdkqt4ozKbg';
 const GEOJSON_URL = 'https://xavijam.carto.com/api/v2/sql?q=SELECT%20*%20FROM%20ne_10m_populated_places_simple&format=GeoJSON';
 const MAP_DOM_ID = 'map';
+const PREVIEW_MAP_DOM_ID = 'preview-map';
 
 // Model objects
 
@@ -62,10 +63,12 @@ const Map = function(layers) {
 };
 
 Map.prototype.notify = function(event, subject) {
+  console.log(subject);
   this.addLayer(subject);
 }
 
 Map.prototype.render = function(domID) {
+  console.log(this.domId)
   this.map = L.map(domID).setView([5,0], 2);
   L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
       id: 'mapbox.streets',
@@ -132,9 +135,6 @@ ListView.prototype.render = function() {
 
 const start = (geojson) => {
   const features = geojson.features.map((feature) => new Feature(feature));
-  const layers = Layers();
-  const map = new Map(layers);
-  map.render(MAP_DOM_ID);
 
   const onToggleCallback = (selectedFeature) => layers.add(new Layer([selectedFeature]));
 
@@ -145,5 +145,13 @@ const start = (geojson) => {
   new ListView(layers, 'layers', layerViewBuilder).render();
 }
 
+const layers = Layers();
+const map = new Map(layers);
+map.render(MAP_DOM_ID);
+
 self.fetch(GEOJSON_URL)
   .then((response) => response.json().then(start));
+
+const previewLayers = Layers();
+const previewMap = new Map(previewLayers);
+previewMap.render(PREVIEW_MAP_DOM_ID);
