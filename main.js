@@ -57,8 +57,9 @@ Layer.prototype.toGeoJSON = function() {
 // View object
 
 // Map
-const Map = function(layers) {
+const Map = function(layers, id) {
   this.layers = layers;
+  this.id = id;
   layers.subscribe(this);
 };
 
@@ -68,10 +69,9 @@ Map.prototype.notify = function(event, subject) {
 }
 
 Map.prototype.render = function(domID) {
-  console.log(this.domId)
   this.map = L.map(domID).setView([5,0], 2);
   L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-      id: 'mapbox.streets',
+      id: this.id,
       accessToken: MAPBOX_ACCESS_TOKEN
       }).addTo(this.map);
 };
@@ -131,6 +131,19 @@ ListView.prototype.render = function() {
   document.getElementById(this.domId).appendChild(ul);
 }
 
+AddLayerLightboxView = function() {
+  this.layers = Layers();
+}
+
+AddLayerLightboxView.prototype.render = function() {
+  const template = document.querySelector('#lightbox-template');
+  const templateClone = document.importNode(template.content, true);
+  document.querySelector('body').appendChild(templateClone);
+
+  this.previewMap = new Map(this.layers, 'mapbox.light');
+  this.previewMap.render(PREVIEW_MAP_DOM_ID);
+}
+
 // App initialization
 
 const start = (geojson) => {
@@ -138,20 +151,18 @@ const start = (geojson) => {
 
   const onToggleCallback = (selectedFeature) => layers.add(new Layer([selectedFeature]));
 
-  const selectFeatureViewBuilder = (feature) => new SelectFeatureView(feature, onToggleCallback);
-  new ListView(features, 'features', selectFeatureViewBuilder).render();
+//  const selectFeatureViewBuilder = (feature) => new SelectFeatureView(feature, onToggleCallback);
+//  new ListView(features, 'features', selectFeatureViewBuilder).render();
 
   const layerViewBuilder = (layer) => new SelectLayerView(layer, () => {});
   new ListView(layers, 'layers', layerViewBuilder).render();
 }
 
 const layers = Layers();
-const map = new Map(layers);
+const map = new Map(layers, 'mapbox.streets');
 map.render(MAP_DOM_ID);
 
 self.fetch(GEOJSON_URL)
   .then((response) => response.json().then(start));
 
-const previewLayers = Layers();
-const previewMap = new Map(previewLayers);
-previewMap.render(PREVIEW_MAP_DOM_ID);
+document.getElementById('add-layer-button').addEventListener('click', () => new AddLayerLightboxView().render());
