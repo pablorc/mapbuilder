@@ -62,6 +62,45 @@ ListView.prototype.render = function(domId, onToggleCallback, itemBuilder) {
   document.getElementById(domId).appendChild(ul);
 }
 
+var Publisher = function() {
+  let handlers = [];
+
+  const subscribe = (observer) => handlers.push(observer);
+
+  const unsubscribe = (observer) => {
+    handlers = handlers.filter((item) => {
+      if (item !== observer) {
+        return item;
+      }
+    });
+  };
+
+  const notifySuscriptors = (objectChanged) => handlers.map((handler) => handler.notify(objectChanged))
+
+  return {
+    subscribe,
+    unsubscribe,
+    notifySuscriptors
+  };
+}
+
+
+var Layers = function() {
+  const layers = [];
+
+  const add = (layer) => {
+    layers.push(layer);
+    this.notifySubscriptors(layer);
+  };
+
+  const that = Object.create(new Publisher());
+  that.add = add;
+
+  return that;
+};
+
+
+
 const start = (geojson) => {
   var features = geojson.features.map((feature) => new Point(feature));
   var layers = [];
@@ -73,9 +112,9 @@ const start = (geojson) => {
   var selectFeatureViewBuilder = (feature) => new SelectFeatureView(feature, onToggleCallback);
   new ListView(features).render('features', onToggleCallback, selectFeatureViewBuilder);
 
-  var layerViewBuilder = (layer) => new SelectFeatureView(feature, onToggleCallback); // TODO: A medias
+  var layerViewBuilder = (layer) => new SelectFeatureView(feature, () => {});
   new ListView(layers).render('layers', onToggleCallback, selectFeatureViewBuilder);
 }
 
-self.fetch(GEOJSON_URL)
-  .then((response) => response.json().then(start));
+//self.fetch(GEOJSON_URL)
+//  .then((response) => response.json().then(start));
