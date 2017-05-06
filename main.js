@@ -2,7 +2,6 @@ var MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoicGFibG9yYyIsImEiOiJjajI3djNyOXAwMGR3MndzMW
 var GEOJSON_URL = 'https://xavijam.carto.com/api/v2/sql?q=SELECT%20*%20FROM%20ne_10m_populated_places_simple&format=GeoJSON';
 var MAP_DOM_ID = 'map';
 
-
 var Map = function(layers) {
   this.layers = layers;
 };
@@ -36,7 +35,7 @@ Layer.prototype.toGeoJSON = function() {
   return {
     type: 'FeatureCollection',
     features: this.layer.map((feature) => feature.toGeoJSON())
-  }
+  };
 }
 
 var SelectFeatureView = function(feature, onToggleCallback) {
