@@ -65,36 +65,23 @@ ListView.prototype.render = function(domId, onToggleCallback, itemBuilder) {
 var Publisher = function() {
   let handlers = [];
 
-  const subscribe = (observer) => handlers.push(observer);
+  const that = new Object();
+  that.subscribe = (observer) => handlers.push(observer);
+  that.notify = (objectChanged) => handlers.map((handler) => handler.notify(objectChanged))
 
-  const unsubscribe = (observer) => {
-    handlers = handlers.filter((item) => {
-      if (item !== observer) {
-        return item;
-      }
-    });
-  };
-
-  const notifySuscriptors = (objectChanged) => handlers.map((handler) => handler.notify(objectChanged))
-
-  return {
-    subscribe,
-    unsubscribe,
-    notifySuscriptors
-  };
+  return that;
 }
 
 
 var Layers = function() {
   const layers = [];
 
-  const add = (layer) => {
-    layers.push(layer);
-    this.notifySubscriptors(layer);
-  };
-
   const that = Object.create(new Publisher());
-  that.add = add;
+
+  that.add = (layer) => {
+    layers.push(layer);
+    this.notify('layer.added', layer);
+  };
 
   return that;
 };
