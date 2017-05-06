@@ -14,7 +14,7 @@
 .builder__map {
   flex-grow: 1;
   flex-shrink: 0;
-  width: calc(100% - (var(--sidebar-width) * 2));
+  width: calc(100% - var(--sidebar-width));
 }
 
 .builder__sidebar {
