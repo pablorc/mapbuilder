@@ -217,7 +217,7 @@ PropertiesView.prototype.initializeColorPicker = function(rootNode) {
 
 PropertiesView.prototype.initializeWidthRange = function(rootNode) {
   const input = rootNode.querySelector('#input-width');
-  input.addEventListener('change', (event) => {
+  input.addEventListener('input', (event) => {
     console.log(input.value);
     this.layer.setStyle('radius', input.value);
   });
@@ -244,7 +244,7 @@ const start = (geojson) => {
 
 
   const onToggleCallback = (selectedFeature) => {
-    layers.add(Layer([selectedFeature]));
+    layers.add(Layer(selectedFeature));
   }
 
   const selectFeatureViewBuilder = (feature) => new SelectFeatureView(feature, onToggleCallback);
