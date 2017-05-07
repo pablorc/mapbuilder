@@ -215,6 +215,14 @@ PropertiesView.prototype.initializeColorPicker = function(rootNode) {
   });
 }
 
+PropertiesView.prototype.initializeWidthRange = function(rootNode) {
+  const input = rootNode.querySelector('#input-width');
+  input.addEventListener('change', (event) => {
+    console.log(input.value);
+    this.layer.setStyle('radius', input.value);
+  });
+}
+
 PropertiesView.prototype.render = function() {
   const template = document.querySelector('#properties-template');
   template.content.querySelector("#layer-on-properties").innerHTML = this.layer.name;
@@ -224,6 +232,7 @@ PropertiesView.prototype.render = function() {
   const root = document.getElementById(this.domId);
 
   this.initializeColorPicker(templateCopy);
+  this.initializeWidthRange(templateCopy);
   root.innerHTML = '';
   root.appendChild(templateCopy);
 }
@@ -233,7 +242,10 @@ PropertiesView.prototype.render = function() {
 const start = (geojson) => {
   const features = geojson.features.map((feature) => new Feature(feature));
 
-  const onToggleCallback = (selectedFeature) => layers.add(Layer(features));
+
+  const onToggleCallback = (selectedFeature) => {
+    layers.add(Layer([selectedFeature]));
+  }
 
   const selectFeatureViewBuilder = (feature) => new SelectFeatureView(feature, onToggleCallback);
   new ListView(features, 'features', selectFeatureViewBuilder).render();
