@@ -11,7 +11,7 @@ const Publisher = function() {
 
   const that = new Object();
   that.subscribe = (observer) => handlers.push(observer);
-  that.notify = (...args) => handlers.map((handler) => handler.notify(...args))
+  that.notifySuscriptors = (...args) => handlers.map((handler) => handler.notify(...args))
 
   return that;
 }
@@ -24,8 +24,13 @@ const Layers = function() {
 
   that.add = (layer) => {
     layers.push(layer);
-    that.notify('layer.added', layer);
+    layer.subscribe(that);
+    that.notifySuscriptors('layer.added', layer);
   };
+
+  that.notify = (event, subject) => {
+    that.notifySuscriptors(event, subject)
+  }
 
   that.map = (callback) => layers.map(callback);
 
@@ -42,11 +47,20 @@ Feature.prototype.toGeoJSON = function() {
 }
 
 // Layer
+/*
 const Layer = function(features) {
   this.features = features;
-  this.name = features.map((feature) => feature.attrs.properties.name).join(', ');
+  this.name = features.map((feature) => feature.attrs.properties.name).slice(0,4).join(', ')  + (features.length > 4 ? ',...' : '');
+  this.style = {}
   this.fillColor = '#fe4291';
   this.color = '#444444';
+}
+
+Layer.prototype = new Publisher();
+
+Layer.prototype.setStyle = function(key, value) {
+  this.style[key] = value;
+  this.notify('layer.restyled', this);
 }
 
 Layer.prototype.toGeoJSON = function() {
@@ -54,6 +68,30 @@ Layer.prototype.toGeoJSON = function() {
     type: 'FeatureCollection',
     features: this.features.map((feature) => feature.toGeoJSON())
   };
+}
+*/
+//-------------------------------------------------
+const Layer = function(features) {
+  const that = Object.create(new Publisher());
+
+  that.style = {};
+
+  that.name = features.map((feature) => feature.attrs.properties.name).slice(0,4).join(', ')  + (features.length > 4 ? ',...' : '');
+
+  that.setStyle = function(key, value) {
+    that.style[key] = value;
+    that.notifySuscriptors('layer.restyled', that);
+  }
+
+  that.toGeoJSON = function() {
+    return {
+      type: 'FeatureCollection',
+      features: features.map((feature) => feature.toGeoJSON())
+    };
+  }
+
+  return that;
+
 }
 
 // View object
@@ -65,28 +103,37 @@ const Map = function(layers, id) {
   layers.subscribe(this);
 };
 
-Map.prototype.notify = function(event, subject) {
-  console.log(subject);
-  this.addLayer(subject);
+Map.prototype.notify = function(event, layer) {
+  const events = {
+    'layer.added': () => this.addLayer(layer),
+    'layer.restyled': () => this.resetLayer(layer),
+  }
+
+  if (event in events) {
+    events[event]();
+  }
+}
+
+Map.prototype.resetLayer = function(layer) {
+  this.map.eachLayer((layer) => layer !== this.baseLayer ? this.map.removeLayer(layer) : '');
+  this.layers.map((layer) => this.addLayer(layer));
 }
 
 Map.prototype.render = function(domID) {
   this.map = L.map(domID).setView([5,0], 2);
-  L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+  this.baseLayer = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
       id: this.id,
       accessToken: MAPBOX_ACCESS_TOKEN
       }).addTo(this.map);
 };
 
 Map.prototype.addLayer = function(layer) {
-	const markerOptions = {
-		radius: 8,
-		fillColor: layer.fillColor,
-		color: layer.color,
-		weight: 1,
-		opacity: 1,
-		fillOpacity: 0.8
-	};
+  const markerOptions = Object.assign({
+    radius: 8,
+    weight: 1,
+    opacity: 1,
+    fillOpacity: 0.8
+  }, layer.style);
 
 	L.geoJSON(layer.toGeoJSON(), {
 		pointToLayer: (feature, latlng) => L.circleMarker(latlng, markerOptions)
@@ -145,19 +192,38 @@ ListView.prototype.render = function() {
 
 // PropertiesView
 const PropertiesView = function(layer, domId) {
-  console.log(layer, domId);
   this.layer = layer;
   this.domId = domId;
+}
+
+PropertiesView.prototype.initializeColorPicker = function(rootNode) {
+  const colors = [
+   '#179e99',
+   '#1dadee',
+   '#7f4196',
+   '#29dfd7',
+   '#afd634',
+   '#fecb30',
+   '#df5290',
+   '#fd7430'
+  ];
+  Array.prototype.slice.call(rootNode.querySelectorAll('.js-color')).map((option, index) => {
+    option.style.backgroundColor = colors[index];
+    option.addEventListener('click', (pickedColor) => {
+      this.layer.setStyle('fillColor', colors[index]);//pickedColor.target.style.backgroundColor);
+    });
+  });
 }
 
 PropertiesView.prototype.render = function() {
   const template = document.querySelector('#properties-template');
   template.content.querySelector("#layer-on-properties").innerHTML = this.layer.name;
-  console.log(this.layer.name);
 
   var templateCopy = document.importNode(template.content, true);
 
   const root = document.getElementById(this.domId);
+
+  this.initializeColorPicker(templateCopy);
   root.innerHTML = '';
   root.appendChild(templateCopy);
 }
@@ -167,7 +233,7 @@ PropertiesView.prototype.render = function() {
 const start = (geojson) => {
   const features = geojson.features.map((feature) => new Feature(feature));
 
-  const onToggleCallback = (selectedFeature) => layers.add(new Layer(features));
+  const onToggleCallback = (selectedFeature) => layers.add(Layer(features));
 
   const selectFeatureViewBuilder = (feature) => new SelectFeatureView(feature, onToggleCallback);
   new ListView(features, 'features', selectFeatureViewBuilder).render();
