@@ -1,10 +1,13 @@
 :root {
   --sidebar-width: 20%;
-  --backdrop-zindex: 100;
+  --properties-height: 300px;
+  --general-margin: 30px;
 }
 
 body {
   margin: 0;
+
+  background-color: #f0f0f0;
 }
 
 .builder {
@@ -15,75 +18,45 @@ body {
   max-width: 100%;
 }
 
-.builder__map {
+.builder__main-area {
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - var(--sidebar-width));
+  margin: var(--general-margin);
+  margin-left: 0;
+
+}
+
+.builder__main-area__map {
   flex-grow: 1;
   flex-shrink: 0;
-  width: calc(100% - var(--sidebar-width));
-  z-index: calc(var(--backdrop-zindex) - 1 );
+  height: calc(100% - var(--properties-height) - var(--general-margin) * 2);
+  width: 100%;
+
+  box-shadow: 0px 0px 25px 2px #bbb;
+}
+
+.builder__main-area__properties {
+  height: calc( var(--properties-height) - var(--general-margin) * 2);
+  margin-top: var(--general-margin);
+  width: 100%;
+
+  background-color: #fff;
+  box-shadow: 0px 0px 25px 2px #bbb;
+}
+
+.builder__main-area__properties:empty {
+  content: 'Select a layer to edit its properties';
 }
 
 .builder__sidebar {
   flex-grow: 0;
   flex-shrink: 0;
   width: var(--sidebar-width);
-  max-height: 100vh;
+  margin: var(--general-margin);
+  max-height: calc(100vh - var(--general-margin) * 2);
   overflow: auto;
-}
-
-.backdrop {
-  align-items: center;
-  display: flex;
-  justify-content: center;
-  height: 100vh;
-  position: absolute;
-  top: 0;
-  width: 100%;
-  z-index: calc(var(--backdrop-zindex));
-
-  background-color: rgba(0, 0, 0, .3);
-}
-
-.lightbox {
-  display: flex;
-  flex-direction: column;
-  height: 700px;
-  width: 1200px;
-  z-index: calc(var(--backdrop-zindex) + 1);
 
   background-color: #fff;
-  border-radius: 4px;
-}
-
-.lightbox__header {
-  border-bottom: 1px solid #f0f0f0;
-  flex-grow: 0;
-  padding: 5px 0;
-
-  color: #333;
-  font-family: sans-serif;
-  font-size: 24px;
-  text-align: center;
-
-}
-
-.lightbox__body {
-  align-items: stretch;
-  display: flex;
-  flex-grow: 1;
-}
-
-.lightbox__body__sidebar {
-  overflow: auto;
-  width: 200px;
-}
-
-.lightbox__body__map {
-  flex-grow: 1;
-  margin: 10px;
-
-  border-radius: 4px;
-}
-
-.lightbox__footer {
-  border-top: 1px solid #f0f0f0;
+  box-shadow: 0px 0px 25px 2px #bbb;
 }

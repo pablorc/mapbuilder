@@ -20,33 +20,21 @@
   </head>
   <body>
     <div class="builder">
-    <aside class="builder__sidebar">
-      <button id="add-layer-button">Add layer</button>
-      <div id="layers"></div>
-      <hr />
-      <div id=""></div>
-    </aside>
-    <section id="map" class="builder__map" >
-    </section>
+      <aside class="builder__item builder__sidebar">
+        <div id="layers"></div>
+        <hr />
+        <div id="features"></div>
+      </aside>
+      <aside class="builder__main-area">
+        <section id="map" class="builder__main-area__map" ></section>
+        <section id="properties" class="builder__main-area__properties" ></section>
+      </aside>
     </div>
-
-
-    <template id="lightbox-template">
-      <div class="backdrop">
-        <div class="lightbox">
-          <div class="lightbox__header">
-            Add new layer
-          </div>
-          <div class="lightbox__body">
-            <div class="lightbox__body__sidebar" id="features"></div>
-            <div class="lightbox__body__sidebar"></div>
-            <div class="lightbox__body__map" id="preview-map"></div>
-          </div>
-        </div>
-      </div>
-    </template>
-
     <script src='main.js'></script>
+
+    <template id="properties-template">
+      Properties for <span id="layer-on-properties"></span>
+    </template>
   </body>
 </html>
 

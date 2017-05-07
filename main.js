@@ -45,6 +45,8 @@ Feature.prototype.toGeoJSON = function() {
 const Layer = function(features) {
   this.features = features;
   this.name = features.map((feature) => feature.attrs.properties.name).join(', ');
+  this.fillColor = '#fe4291';
+  this.color = '#444444';
 }
 
 Layer.prototype.toGeoJSON = function() {
@@ -77,27 +79,37 @@ Map.prototype.render = function(domID) {
 };
 
 Map.prototype.addLayer = function(layer) {
-  L.geoJSON(layer.toGeoJSON()).addTo(this.map);
+	const markerOptions = {
+		radius: 8,
+		fillColor: layer.fillColor,
+		color: layer.color,
+		weight: 1,
+		opacity: 1,
+		fillOpacity: 0.8
+	};
+
+	L.geoJSON(layer.toGeoJSON(), {
+		pointToLayer: (feature, latlng) => L.circleMarker(latlng, markerOptions)
+	}).addTo(this.map);
 };
 
 // SelectedLayerView
-const SelectLayerView = function(layer) {
+const SelectLayerView = function(layer, onClickCallback) {
   this.layer = layer;
-  this.onToggleCallback = () => {};
+  this.onClickCallback = onClickCallback;
 }
 
 SelectLayerView.prototype.render = function() {
   const li = document.createElement('li');
   const textNode = document.createTextNode(this.layer.name);
   li.appendChild(textNode);
-  li.addEventListener('click', () => this.onToggleCallback(this.layer));
+  li.addEventListener('click', () => this.onClickCallback(this.layer));
   return li;
 }
 
 // SelectedFeatureView
 const SelectFeatureView = function(feature, onToggleCallback) {
-  this.feature = feature;
-  this.onToggleCallback = onToggleCallback;
+  this.feature = feature; this.onToggleCallback = onToggleCallback;
 }
 
 SelectFeatureView.prototype.render = function() {
@@ -131,17 +143,23 @@ ListView.prototype.render = function() {
   document.getElementById(this.domId).appendChild(ul);
 }
 
-AddLayerLightboxView = function() {
-  this.layers = Layers();
+// PropertiesView
+const PropertiesView = function(layer, domId) {
+  console.log(layer, domId);
+  this.layer = layer;
+  this.domId = domId;
 }
 
-AddLayerLightboxView.prototype.render = function() {
-  const template = document.querySelector('#lightbox-template');
-  const templateClone = document.importNode(template.content, true);
-  document.querySelector('body').appendChild(templateClone);
+PropertiesView.prototype.render = function() {
+  const template = document.querySelector('#properties-template');
+  template.content.querySelector("#layer-on-properties").innerHTML = this.layer.name;
+  console.log(this.layer.name);
 
-  this.previewMap = new Map(this.layers, 'mapbox.light');
-  this.previewMap.render(PREVIEW_MAP_DOM_ID);
+  var templateCopy = document.importNode(template.content, true);
+
+  const root = document.getElementById(this.domId);
+  root.innerHTML = '';
+  root.appendChild(templateCopy);
 }
 
 // App initialization
@@ -149,12 +167,13 @@ AddLayerLightboxView.prototype.render = function() {
 const start = (geojson) => {
   const features = geojson.features.map((feature) => new Feature(feature));
 
-  const onToggleCallback = (selectedFeature) => layers.add(new Layer([selectedFeature]));
+  const onToggleCallback = (selectedFeature) => layers.add(new Layer(features));
 
-//  const selectFeatureViewBuilder = (feature) => new SelectFeatureView(feature, onToggleCallback);
-//  new ListView(features, 'features', selectFeatureViewBuilder).render();
+  const selectFeatureViewBuilder = (feature) => new SelectFeatureView(feature, onToggleCallback);
+  new ListView(features, 'features', selectFeatureViewBuilder).render();
 
-  const layerViewBuilder = (layer) => new SelectLayerView(layer, () => {});
+  const onLayerClick = (layer) => new PropertiesView(layer, 'properties').render();
+  const layerViewBuilder = (layer) => new SelectLayerView(layer, onLayerClick);
   new ListView(layers, 'layers', layerViewBuilder).render();
 }
 
@@ -164,5 +183,3 @@ map.render(MAP_DOM_ID);
 
 self.fetch(GEOJSON_URL)
   .then((response) => response.json().then(start));
-
-document.getElementById('add-layer-button').addEventListener('click', () => new AddLayerLightboxView().render());
