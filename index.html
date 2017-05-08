@@ -20,18 +20,20 @@
   </head>
   <body>
     <div class="builder">
-      <aside class="builder__item builder__sidebar">
-        <div id="layers"></div>
-        <hr />
-        <div id="features" style="max-height: 30vh; overflow: auto;"></div>
-        <hr />
-        <section id="properties"></section>
+      <aside class="builder__item builder__sidebar js-sidebar">
       </aside>
       <aside class="builder__main-area">
         <section id="map" class="builder__main-area__map" ></section>
       </aside>
     </div>
     <script src='main.js'></script>
+
+    <template id="main-sidebar">
+      <div id="layers"></div>
+      <a href="#" class="js-add-layer">Add layer</a>
+      <hr />
+      <section id="properties"></section>
+    </template>
 
     <template id="properties-template">
       <h2>
