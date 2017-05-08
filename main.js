@@ -144,6 +144,7 @@ SelectLayerView.prototype.notify = function(event, subject) {
 
 SelectLayerView.prototype.render = function() {
   const li = document.createElement('li');
+  li.classList = 'item-list__item';
   const textNode = document.createTextNode(this.layer.name);
   li.appendChild(textNode);
   li.addEventListener('click', () => this.onClickCallback(this.layer));
@@ -157,9 +158,10 @@ const SelectFeatureView = function(feature, onToggleCallback) {
 
 SelectFeatureView.prototype.render = function() {
   const li = document.createElement('li');
+  li.classList = 'item-list__item';
   const textNode = document.createTextNode(this.feature.attrs.properties.name);
   li.appendChild(textNode);
-  li.addEventListener('click', () => this.onToggleCallback(this.feature));
+  li.addEventListener('click', () => this.onToggleCallback(li, this.feature));
   return li;
 }
 
@@ -179,11 +181,15 @@ ListView.prototype.notify = function(event, subject) {
 ListView.prototype.render = function() {
   const renderedPoints = this.items.map((item) => this.itemBuilder(item).render());
   const ul = document.createElement('ul');
+  ul.classList = 'item-list';
   const append = (child) => ul.appendChild(child);
   renderedPoints.map((child) => append(child));
 
-  document.getElementById(this.domId).innerHTML = '';
-  document.getElementById(this.domId).appendChild(ul);
+  const $el = document.getElementById(this.domId)
+  if ($el) {
+    $el.innerHTML = '';
+    $el.appendChild(ul);
+  }
 }
 
 // ColorPickerView
@@ -251,7 +257,7 @@ PropertiesView.prototype.changeLayer = function(layer) {
 }
 PropertiesView.prototype.notify = function(event, layer) {
   if (event === 'layer.added') {
-    this.changeLayer(layer);
+    //this.changeLayer(layer);
   }
 }
 
@@ -298,7 +304,7 @@ MainSidebar.prototype.render = function() {
   $addLayer.addEventListener('click', () => new AddLayer(this.layers, this.$el, this.features).render());
 
   this.properties = new PropertiesView(layers, 'properties');
-  this.properties.render();
+  this.properties.changeLayer(layers[layers.length - 1]);
   const onLayerClick = (layer) => this.properties.changeLayer(layer);
   const layerViewBuilder = (layer) => new SelectLayerView(layer, onLayerClick);
   new ListView(layers, 'layers', layerViewBuilder).render();
@@ -317,7 +323,11 @@ AddLayer.prototype.render = function() {
   this.$el.innerHTML = '';
   this.$el.appendChild(templateCopy);
 
-  const onToggleCallback = (selectedFeature) => this.selectedFeatures.push(selectedFeature);
+  const onToggleCallback = ($el, selectedFeature) => {
+    console.log($el, selectedFeature);
+    $el.classList = $el.classList + ' item-list__item--is-selected';
+    this.selectedFeatures.push(selectedFeature);
+  };
   const selectFeatureViewBuilder = (feature) => new SelectFeatureView(feature, onToggleCallback);
   new ListView(this.features, 'features', selectFeatureViewBuilder).render();
 
