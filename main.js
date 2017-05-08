@@ -154,7 +154,7 @@ SelectFeatureView.prototype.render = function() {
 }
 
 // ListView
-const ListView = function(items,domId, itemBuilder) {
+const ListView = function(items, domId, itemBuilder) {
   this.items = items;
   this.domId = domId;
   this.itemBuilder = itemBuilder;
@@ -288,9 +288,8 @@ MainSidebar.prototype.render = function() {
   var templateCopy = document.importNode(template.content, true);
   this.$el.innerHTML = '';
   this.$el.appendChild(templateCopy);
-  const onToggleCallback = (selectedFeature) => layers.add(Layer([selectedFeature]));
   const $addLayer = document.querySelector('.js-add-layer');
-  $addLayer.addEventListener('click', () => onToggleCallback(this.features[Math.floor(Math.random() * this.features.length)]));
+  $addLayer.addEventListener('click', () => new AddLayer(this.layers, this.$el, this.features).render());
 
   this.properties = new PropertiesView(layers, 'properties');
   this.properties.render();
@@ -299,12 +298,37 @@ MainSidebar.prototype.render = function() {
   new ListView(layers, 'layers', layerViewBuilder).render();
 }
 
+AddLayer = function(layers, $el, features) {
+  this.layers = layers;
+  this.$el = $el;
+  this.features = features; //TODO: REMOVE
+  this.selectedFeatures = [];
+}
+
+AddLayer.prototype.render = function() {
+  const template = document.querySelector('#add-layer');
+  var templateCopy = document.importNode(template.content, true);
+  this.$el.innerHTML = '';
+  this.$el.appendChild(templateCopy);
+
+  const onToggleCallback = (selectedFeature) => this.selectedFeatures.push(selectedFeature);
+  const selectFeatureViewBuilder = (feature) => new SelectFeatureView(feature, onToggleCallback);
+  new ListView(this.features, 'features', selectFeatureViewBuilder).render();
+
+  const $cancel = document.querySelector('.js-cancel');
+  $cancel.addEventListener('click', () => new MainSidebar(this.layers, this.$el, this.features).render());
+
+  const $save = document.querySelector('.js-save');
+  $save.addEventListener('click', () => {
+    layers.add(Layer(this.selectedFeatures));
+    new MainSidebar(this.layers, this.$el, this.features).render();
+  });
+}
+
 const start = (geojson) => {
   const features = geojson.features.map((feature) => new Feature(feature));
 
   new MainSidebar(layers, document.querySelector('.js-sidebar'), features).render();
-  //const selectFeatureViewBuilder = (feature) => new SelectFeatureView(feature, onToggleCallback);
-  //new ListView(features, 'features', selectFeatureViewBuilder).render();
 }
 
 const layers = Layers();
