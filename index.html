@@ -36,9 +36,12 @@
     </template>
 
     <template id="add-layer">
-      <div id="features"></div>
-        <button class="js-cancel">Cancel</button>
-        <button class="js-save">Save</button>
+      <div class="sidebar">
+      <div class="sidebar__element sidebar__element--has-list" id="features"></div>
+      <div class="sidebar__element sidebar__element--is-fixed button-list">
+        <button class="js-cancel button-list__button">Cancel</button>
+        <button class="js-save button-list__button">Save</button>
+      </div>
     </template>
 
     <template id="properties-template">
