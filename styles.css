@@ -103,7 +103,7 @@ body {
 
 .item-list__item:hover,
 .item-list__item--is-selected {
-  background-color: #f0f0f0;
+  background-color: #23bca9;
 }
 
 .sidebar {
@@ -131,18 +131,28 @@ body {
 }
 
 .button-list__button {
-  border: 1px solid #f0f0f0;
   flex-grow: 1;
-  padding: 10px 0;
-
-  color: #333;
-  cursor: pointer;
 }
 
-.button-list__button:hover {
 
-  background-color: #c0c2c4;
-}
 .button-list__button + .button-list__button {
   margin-right: 3px;
+}
+
+.button:hover {
+  opacity: 0.9;
+}
+
+.button {
+  border: 1px solid #f0f0f0;
+  padding: 10px 0;
+
+  background-color: #f44034;
+  color: #fff;
+  cursor: pointer;
+}
+.button--is-secondary {
+  background-color: white;
+  color: #333;
+  border: 0 none;
 }
