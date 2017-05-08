@@ -135,6 +135,8 @@ Map.prototype.addLayer = function(layer) {
     fillOpacity: 0.8
   }, layer.style);
 
+  console.log(markerOptions);
+
 	L.geoJSON(layer.toGeoJSON(), {
 		pointToLayer: (feature, latlng) => L.circleMarker(latlng, markerOptions)
 	}).addTo(this.map);
@@ -190,14 +192,13 @@ ListView.prototype.render = function() {
   document.getElementById(this.domId).appendChild(ul);
 }
 
-// PropertiesView
-const PropertiesView = function(layer, domId) {
-  this.layer = layer;
-  this.domId = domId;
-}
+// ColorPickerView
 
-PropertiesView.prototype.initializeColorPicker = function(rootNode) {
-  const colors = [
+const ColorPickerView = function(layer, $el, style) {
+  this.layer = layer;
+  this.$el = $el;
+  this.style = style;
+  this.colors = [
    '#179e99',
    '#1dadee',
    '#7f4196',
@@ -207,20 +208,53 @@ PropertiesView.prototype.initializeColorPicker = function(rootNode) {
    '#df5290',
    '#fd7430'
   ];
-  Array.prototype.slice.call(rootNode.querySelectorAll('.js-color')).map((option, index) => {
-    option.style.backgroundColor = colors[index];
-    option.addEventListener('click', (pickedColor) => {
-      this.layer.setStyle('fillColor', colors[index]);//pickedColor.target.style.backgroundColor);
-    });
-  });
 }
 
-PropertiesView.prototype.initializeWidthRange = function(rootNode) {
-  const input = rootNode.querySelector('#input-width');
-  input.addEventListener('input', (event) => {
-    console.log(input.value);
-    this.layer.setStyle('radius', input.value);
+ColorPickerView.prototype.render = function() {
+  const template = document.querySelector('#color-picker');
+  var templateCopy = document.importNode(template.content, true);
+
+  Array.prototype.slice.call(templateCopy.querySelectorAll('.js-color')).map((option, index) => {
+    option.style.backgroundColor = this.colors[index];
+    option.addEventListener('click', (pickedColor) => {
+      this.layer.setStyle(this.style, this.colors[index]);
+    });
   });
+
+  this.$el.innerHTML = '';
+  this.$el.appendChild(templateCopy);
+}
+
+NumberSelectorView = function(layer, $el, style, value, maxSize, step) {
+  this.layer = layer;
+  this.$el = $el;
+  this.style = style;
+  this.maxSize = maxSize;
+  this.value = value;
+  this.step = step || 1;
+}
+
+NumberSelectorView.prototype.render = function() {
+  const template = document.querySelector('#number-selector');
+  var templateCopy = document.importNode(template.content, true);
+  const $input = templateCopy.querySelector('.js-input-number');
+  $input.setAttribute('max', this.maxSize);
+  $input.setAttribute('value', this.value);
+  $input.setAttribute('step', this.step);
+
+  $input.addEventListener('input', () => {
+    console.log($input.value);
+    this.layer.setStyle(this.style, $input.value);
+  });
+
+  this.$el.innerHTML = '';
+  this.$el.appendChild(templateCopy);
+}
+
+// PropertiesView
+const PropertiesView = function(layer, domId) {
+  this.layer = layer;
+  this.domId = domId;
 }
 
 PropertiesView.prototype.render = function() {
@@ -231,8 +265,12 @@ PropertiesView.prototype.render = function() {
 
   const root = document.getElementById(this.domId);
 
-  this.initializeColorPicker(templateCopy);
-  this.initializeWidthRange(templateCopy);
+  new ColorPickerView(this.layer, templateCopy.querySelector('.js-stroke-color-picker'), 'color').render();
+  new ColorPickerView(this.layer, templateCopy.querySelector('.js-fill-color-picker'), 'fillColor').render();
+  new NumberSelectorView(this.layer, templateCopy.querySelector('.js-radius'), 'radius', 8, 50).render();
+  new NumberSelectorView(this.layer, templateCopy.querySelector('.js-weight'), 'weight', 1, 20).render();
+  new NumberSelectorView(this.layer, templateCopy.querySelector('.js-opacity'), 'opacity', 0, 1, 0.1).render();
+
   root.innerHTML = '';
   root.appendChild(templateCopy);
 }
