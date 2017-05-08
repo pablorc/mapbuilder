@@ -2,6 +2,16 @@ const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoicGFibG9yYyIsImEiOiJjajI3djNyOXAwMGR3Mndz
 const GEOJSON_URL = 'https://xavijam.carto.com/api/v2/sql?q=SELECT%20*%20FROM%20ne_10m_populated_places_simple&format=GeoJSON';
 const MAP_DOM_ID = 'map';
 const PREVIEW_MAP_DOM_ID = 'preview-map';
+const COLORS = [
+   '#179e99',
+   '#1dadee',
+   '#7f4196',
+   '#29dfd7',
+   '#afd634',
+   '#fecb30',
+   '#df5290',
+   '#fd7430'
+  ];
 
 // Model objects
 
@@ -181,28 +191,24 @@ const ColorPickerView = function(layer, $el, style) {
   this.layer = layer;
   this.$el = $el;
   this.style = style;
-  this.colors = [
-   '#179e99',
-   '#1dadee',
-   '#7f4196',
-   '#29dfd7',
-   '#afd634',
-   '#fecb30',
-   '#df5290',
-   '#fd7430'
-  ];
 }
 
 ColorPickerView.prototype.render = function() {
   const template = document.querySelector('#color-picker');
-  var templateCopy = document.importNode(template.content, true);
+  const templateCopy = document.importNode(template.content, true);
+  const $root = templateCopy.querySelector('.js-color-picker');
+  const colorTemplate = document.querySelector('#color-picker-option');
 
-  Array.prototype.slice.call(templateCopy.querySelectorAll('.js-color')).map((option, index) => {
-    option.style.backgroundColor = this.colors[index];
-    option.addEventListener('click', (pickedColor) => {
-      this.layer.setStyle(this.style, this.colors[index]);
+  const colorOptions = COLORS.map((color) => {
+    const colorOptionCopy = document.importNode(colorTemplate.content, true);
+    const option = colorOptionCopy.querySelector('.js-color');
+    option.style.backgroundColor = color;
+    option.addEventListener('click', () => {
+      this.layer.setStyle(this.style, color);
     });
+    $root.appendChild(colorOptionCopy);
   });
+
 
   this.$el.innerHTML = '';
   this.$el.appendChild(templateCopy);
