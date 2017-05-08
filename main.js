@@ -83,6 +83,11 @@ const Layer = function(features) {
     that.notifySuscriptors('layer.restyled', that);
   }
 
+  that.setName = (name) => {
+    that.name = name;
+    that.notifySuscriptors('layer.renamed', that);
+  }
+
   that.toGeoJSON = function() {
     return {
       type: 'FeatureCollection',
@@ -135,8 +140,6 @@ Map.prototype.addLayer = function(layer) {
     fillOpacity: 0.8
   }, layer.style);
 
-  console.log(markerOptions);
-
 	L.geoJSON(layer.toGeoJSON(), {
 		pointToLayer: (feature, latlng) => L.circleMarker(latlng, markerOptions)
 	}).addTo(this.map);
@@ -146,6 +149,11 @@ Map.prototype.addLayer = function(layer) {
 const SelectLayerView = function(layer, onClickCallback) {
   this.layer = layer;
   this.onClickCallback = onClickCallback;
+  this.layer.subscribe(this);
+}
+
+SelectLayerView.prototype.notify = function(event, subject) {
+  this.render();
 }
 
 SelectLayerView.prototype.render = function() {
@@ -193,7 +201,6 @@ ListView.prototype.render = function() {
 }
 
 // ColorPickerView
-
 const ColorPickerView = function(layer, $el, style) {
   this.layer = layer;
   this.$el = $el;
@@ -243,7 +250,6 @@ NumberSelectorView.prototype.render = function() {
   $input.setAttribute('step', this.step);
 
   $input.addEventListener('input', () => {
-    console.log($input.value);
     this.layer.setStyle(this.style, $input.value);
   });
 
@@ -271,6 +277,10 @@ PropertiesView.prototype.render = function() {
   new NumberSelectorView(this.layer, templateCopy.querySelector('.js-weight'), 'weight', 1, 20).render();
   new NumberSelectorView(this.layer, templateCopy.querySelector('.js-opacity'), 'opacity', 0, 1, 0.1).render();
 
+  const $nameInput = templateCopy.querySelector('.js-name');
+  $nameInput.setAttribute('value', this.layer.name);
+  $nameInput.addEventListener('keyup', () => this.layer.setName($nameInput.value));
+
   root.innerHTML = '';
   root.appendChild(templateCopy);
 }
@@ -294,7 +304,7 @@ const start = (geojson) => {
 }
 
 const layers = Layers();
-const map = new Map(layers, 'mapbox.streets');
+const map = new Map(layers, 'mapbox.light');
 map.render(MAP_DOM_ID);
 
 self.fetch(GEOJSON_URL)
