@@ -1,7 +1,7 @@
 :root {
-  --sidebar-width: 20%;
+  --sidebar-width: 30%;
   --properties-height: 300px;
-  --general-margin: 30px;
+  --general-margin: 5px;
 
   --palette-1: #179e99;
   --palette-2: #1dadee;
@@ -74,19 +74,14 @@ body {
   display: flex;
 }
 
-.color-picker__option {
-  border: 1px solid #cecece;
-  border-right: 0 none;
+.color-picker__option:not(:last-child) {
+  padding-right: 2px;
 }
 
 .color-picker__option__color {
-  height: 15px;
-  margin: 5px;
-  width: 15px;
-}
-
-.color-picker__option:last-child {
-  border-right: 1px solid #cecece;
+  border-radius: 25px;
+  height: 25px;
+  width: 25px;
 }
 
 

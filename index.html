@@ -23,11 +23,12 @@
       <aside class="builder__item builder__sidebar">
         <div id="layers"></div>
         <hr />
-        <div id="features"></div>
+        <div id="features" style="max-height: 30vh; overflow: auto;"></div>
+        <hr />
+        <section id="properties"></section>
       </aside>
       <aside class="builder__main-area">
         <section id="map" class="builder__main-area__map" ></section>
-        <section id="properties" class="builder__main-area__properties" ></section>
       </aside>
     </div>
     <script src='main.js'></script>
@@ -36,24 +37,35 @@
       <h2>
         Properties for <span id="layer-on-properties"></span>
       </h2>
-
+      <p>
       Name
       <input type="text" class="js-name"></input>
+      </p>
 
+      <p>
       Fill color
       <div class="js-fill-color-picker"></div>
+      </p>
 
+      <p>
       Stroke color
       <div class="js-stroke-color-picker"></div>
+      </p>
 
+      <p>
       Radius
       <div class="js-radius"></div>
+      </p>
 
+      <p>
       Weight
       <div class="js-weight"></div>
+      </p>
 
+      <p>
       Opacity
       <div class="js-opacity"></div>
+      </p>
 
     </template>
 

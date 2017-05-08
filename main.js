@@ -47,30 +47,6 @@ Feature.prototype.toGeoJSON = function() {
 }
 
 // Layer
-/*
-const Layer = function(features) {
-  this.features = features;
-  this.name = features.map((feature) => feature.attrs.properties.name).slice(0,4).join(', ')  + (features.length > 4 ? ',...' : '');
-  this.style = {}
-  this.fillColor = '#fe4291';
-  this.color = '#444444';
-}
-
-Layer.prototype = new Publisher();
-
-Layer.prototype.setStyle = function(key, value) {
-  this.style[key] = value;
-  this.notify('layer.restyled', this);
-}
-
-Layer.prototype.toGeoJSON = function() {
-  return {
-    type: 'FeatureCollection',
-    features: this.features.map((feature) => feature.toGeoJSON())
-  };
-}
-*/
-//-------------------------------------------------
 const Layer = function(features) {
   const that = Object.create(new Publisher());
 
@@ -258,12 +234,26 @@ NumberSelectorView.prototype.render = function() {
 }
 
 // PropertiesView
-const PropertiesView = function(layer, domId) {
-  this.layer = layer;
+const PropertiesView = function(layers, domId) {
   this.domId = domId;
+  layers.subscribe(this);
+}
+
+PropertiesView.prototype.changeLayer = function(layer) {
+    this.layer = layer;
+    this.render();
+}
+PropertiesView.prototype.notify = function(event, layer) {
+  if (event === 'layer.added') {
+    this.changeLayer(layer);
+  }
 }
 
 PropertiesView.prototype.render = function() {
+  if (!this.layer) {
+    return;
+  }
+
   const template = document.querySelector('#properties-template');
   template.content.querySelector("#layer-on-properties").innerHTML = this.layer.name;
 
@@ -297,8 +287,8 @@ const start = (geojson) => {
 
   const selectFeatureViewBuilder = (feature) => new SelectFeatureView(feature, onToggleCallback);
   new ListView(features, 'features', selectFeatureViewBuilder).render();
-
-  const onLayerClick = (layer) => new PropertiesView(layer, 'properties').render();
+  this.properties = new PropertiesView(layers, 'properties').render()
+  const onLayerClick = (layer) => properties.changeLayer(layer);
   const layerViewBuilder = (layer) => new SelectLayerView(layer, onLayerClick);
   new ListView(layers, 'layers', layerViewBuilder).render();
 }
