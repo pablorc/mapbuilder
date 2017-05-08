@@ -244,7 +244,7 @@ const start = (geojson) => {
 
 
   const onToggleCallback = (selectedFeature) => {
-    layers.add(Layer(selectedFeature));
+    layers.add(Layer([selectedFeature]));
   }
 
   const selectFeatureViewBuilder = (feature) => new SelectFeatureView(feature, onToggleCallback);
