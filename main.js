@@ -11,7 +11,8 @@ const COLORS = [
    '#fecb30',
    '#df5290',
    '#fd7430'
-  ];
+];
+const IMAGES = ['home', 'camera', 'plane', 'briefcase'].map((filename) => `png/${filename}.png`);
 
 // Model objects
 
@@ -116,9 +117,10 @@ Map.prototype.resetLayer = function(layer) {
 }
 
 Map.prototype.icons = function() {
-  return ['home', 'plane', 'breiefcase', 'camera'].reduce((dict, filename) => {
+  return IMAGES.reduce((dict, filename) => {
+    console.log(filename, dict);
     dict[filename] = L.icon({
-      iconUrl: `png/${filename}.png`,
+      iconUrl: filename,
       iconSize: [16, 16],
       iconAnchor: [8, 8],
       popupAnchor: [-3, -76],
@@ -135,7 +137,7 @@ Map.prototype.render = function(domID) {
       id: this.id,
       accessToken: MAPBOX_ACCESS_TOKEN
       }).addTo(this.map);
-  L.marker([50.505, 30.57], {icon: this.icons().plane}).addTo(this.map);
+  L.marker([50.505, 30.57], {icon: this.icons()['png/plane.png']}).addTo(this.map);
 };
 
 Map.prototype.addLayer = function(layer) {
@@ -256,6 +258,38 @@ ColorPickerView.prototype.render = function() {
   this.$el.appendChild(templateCopy);
 }
 
+ImageSelector = function(layer, $el, style) {
+  this.layer = layer;
+  this.$el = $el;
+  this.style = style;
+}
+
+ImageSelector.prototype.render = function() {
+  const template = document.querySelector('#image-picker');
+  const templateCopy = document.importNode(template.content, true);
+  const $root = templateCopy.querySelector('.js-image-picker');
+  const colorTemplate = document.querySelector('#image-picker-option');
+
+  const colorOptions = IMAGES.map((image) => {
+    const colorOptionCopy = document.importNode(colorTemplate.content, true);
+    const option = colorOptionCopy.querySelector('.js-image');
+    option.setAttribute('src',  image);
+    if (image === this.layer.style[this.style]) {
+      console.log('selected', image);
+      option.classList += ' image-picker__option__color--is-selected';
+    }
+    option.addEventListener('click', () => {
+      console.log('click', image);
+      //this.layer.setStyle(this.style, image);
+    });
+    $root.appendChild(colorOptionCopy);
+  });
+
+
+  this.$el.innerHTML = '';
+  this.$el.appendChild(templateCopy);
+}
+
 NumberSelectorView = function(layer, $el, style, value, maxSize, step) {
   this.layer = layer;
   this.$el = $el;
@@ -340,6 +374,8 @@ ImagePropertiesView.prototype.render = function() {
 
   const root = this.domId;
 
+  new ImageSelector(this.layer, templateCopy.querySelector('.js-image-picker'), 'imageUrl').render();
+
   root.innerHTML = '';
   root.appendChild(templateCopy);
 }
@@ -387,9 +423,6 @@ MainSidebar.prototype.render = function() {
   $addLayer.addEventListener('click', () => new AddLayer(this.layers, this.$el, this.features).render());
 
   this.properties = new PropertiesView(layers, 'properties');
-  console.log(layers)
-  console.log(layers.length());
-  console.log(layers.length() - 1);
   const propertiesLayer = layers.getLayer(layers.length() - 1);
   this.properties.changeLayer(propertiesLayer);
   const onLayerClick = (layer) => this.properties.changeLayer(layer);

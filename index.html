@@ -80,10 +80,7 @@
     <template id="image-marker">
       <div class="properties__pair">
         <div class="properties__key">Images</div>
-        <div class="properties__value color-picker">
-          <img src="png/photo.png" class="" />
-          <img src="png/home.png" class="" />
-          <img src="png/plane.png" class="" />
+        <div class="properties__value image-picker js-image-picker">
         </div>
       </div>
     </template>
@@ -114,6 +111,14 @@
           <div class="properties__value js-opacity"></div>
         </div>
       </div>
+    </template>
+    <template id="image-picker">
+      <div class="image-picker js-image-picker">
+      </div>
+    </template>
+
+    <template id="image-picker-option">
+      <div class="image-picker__option"><img class="js-image image-picker__option__image" /></div>
     </template>
 
     <template id="color-picker">
