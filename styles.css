@@ -80,9 +80,14 @@ body {
 }
 
 .color-picker__option__color {
+  border: 2px solid transparent;
   border-radius: 25px;
   height: 25px;
   width: 25px;
+}
+
+.color-picker__option__color--is-selected {
+  border-color: #333;
 }
 
 .item-list {
@@ -214,6 +219,10 @@ body {
   text-align: right;
   padding: 10px;
   vertical-align: middle;
+}
+
+.properties__group {
+  display: table-row-group;
 }
 
 .input {

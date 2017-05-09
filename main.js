@@ -62,7 +62,10 @@ Feature.prototype.toGeoJSON = function() {
 const Layer = function(features) {
   const that = Object.create(new Publisher());
 
-  that.style = {};
+  that.style = {
+    fillColor: COLORS[0],
+    stroke: COLORS[1],
+  };
 
   that.name = features.map((feature) => feature.attrs.properties.name).slice(0,4).join(', ')  + (features.length > 4 ? ',...' : '');
 
@@ -112,12 +115,27 @@ Map.prototype.resetLayer = function(layer) {
   this.layers.map((layer) => this.addLayer(layer));
 }
 
+Map.prototype.icons = function() {
+  return ['home', 'plane', 'breiefcase', 'camera'].reduce((dict, filename) => {
+    dict[filename] = L.icon({
+      iconUrl: `png/${filename}.png`,
+      iconSize: [16, 16],
+      iconAnchor: [8, 8],
+      popupAnchor: [-3, -76],
+      shadowSize: [0, 0],
+      shadowAnchor: [0, 0]
+    });
+    return dict;
+  }, {});
+}
+
 Map.prototype.render = function(domID) {
   this.map = L.map(domID).setView([5,0], 2);
   this.baseLayer = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
       id: this.id,
       accessToken: MAPBOX_ACCESS_TOKEN
       }).addTo(this.map);
+  L.marker([50.505, 30.57], {icon: this.icons().plane}).addTo(this.map);
 };
 
 Map.prototype.addLayer = function(layer) {
@@ -223,6 +241,10 @@ ColorPickerView.prototype.render = function() {
     const colorOptionCopy = document.importNode(colorTemplate.content, true);
     const option = colorOptionCopy.querySelector('.js-color');
     option.style.backgroundColor = color;
+    if (color === this.layer.style[this.style]) {
+      console.log('selected', color);
+      option.classList += ' color-picker__option__color--is-selected';
+    }
     option.addEventListener('click', () => {
       this.layer.setStyle(this.style, color);
     });
@@ -287,15 +309,62 @@ PropertiesView.prototype.render = function() {
 
   const root = document.getElementById(this.domId);
 
+  const $nameInput = templateCopy.querySelector('.js-name');
+  $nameInput.setAttribute('value', this.layer.name);
+  $nameInput.addEventListener('keyup', () => this.layer.setName($nameInput.value));
+
+  new CirclePropertiesView(this.layers, this.layer, templateCopy.querySelector('.js-properties-marker')).render();
+
+  const $select = templateCopy.querySelector('.js-select');
+  $select.addEventListener('change', () => {
+    if ($select.value === 'image') {
+      new ImagePropertiesView(this.layers, this.layer, document.querySelector('.js-properties-marker')).render();
+    } else {
+      new CirclePropertiesView(this.layers, this.layer, document.querySelector('.js-properties-marker')).render();
+    }
+  });
+
+  root.innerHTML = '';
+  root.appendChild(templateCopy);
+}
+
+ImagePropertiesView = function(layers, layer, domId) {
+  this.layers =  layers;
+  this.layer = layer;
+  this.domId = domId;
+}
+
+ImagePropertiesView.prototype.render = function() {
+  const template = document.querySelector('#image-marker');
+  var templateCopy = document.importNode(template.content, true);
+
+  const root = this.domId;
+
+  root.innerHTML = '';
+  root.appendChild(templateCopy);
+}
+
+CirclePropertiesView = function(layers, layer, domId) {
+  this.layers =  layers;
+  this.layer = layer;
+  this.domId = domId;
+}
+
+CirclePropertiesView.prototype.render = function() {
+  if (!this.layer) {
+    return;
+  }
+
+  const template = document.querySelector('#circle-marker');
+  var templateCopy = document.importNode(template.content, true);
+
+  const root = this.domId;
+
   new ColorPickerView(this.layer, templateCopy.querySelector('.js-stroke-color-picker'), 'color').render();
   new ColorPickerView(this.layer, templateCopy.querySelector('.js-fill-color-picker'), 'fillColor').render();
   new NumberSelectorView(this.layer, templateCopy.querySelector('.js-radius'), 'radius', 8, 50).render();
   new NumberSelectorView(this.layer, templateCopy.querySelector('.js-weight'), 'weight', 1, 20).render();
   new NumberSelectorView(this.layer, templateCopy.querySelector('.js-opacity'), 'opacity', 0, 1, 0.1).render();
-
-  const $nameInput = templateCopy.querySelector('.js-name');
-  $nameInput.setAttribute('value', this.layer.name);
-  $nameInput.addEventListener('keyup', () => this.layer.setName($nameInput.value));
 
   root.innerHTML = '';
   root.appendChild(templateCopy);

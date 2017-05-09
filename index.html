@@ -31,25 +31,25 @@
 
     <template id="main-sidebar">
       <div class="sidebar">
-      <h2 class="sidebar__element sidebar__element--is-fixed title">Layers</h2>
+        <h2 class="sidebar__element sidebar__element--is-fixed title">Layers</h2>
         <div  class="sidebar__element sidebar__element--is-fixed sidebar__element--is-small" id="layers"></div>
         <div class="sidebar__element sidebar__element--is-fixed button-list">
           <button class="button-list__button button js-add-layer">Add layer</button>
         </div>
-      <section id="properties" class="sidebar__element"></section>
+        <section id="properties" class="sidebar__element"></section>
       </div>
     </template>
 
     <template id="add-layer">
       <div class="sidebar">
-      <h2 class="sidebar__element sidebar__element--is-fixed title">Available cities</h2>
-      <div class="sidebar__element sidebar__element--has-list" id="features"></div>
-      <h2 class="sidebar__element sidebar__element--is-fixed title">New layer contains</h2>
-      <div class="sidebar__element sidebar__element--has-list sidebar__element--is-small" id="new-layer"></div>
-      <div class="sidebar__element sidebar__element--is-fixed button-list">
-        <button class="js-cancel button-list__button button button--is-secondary">Cancel</button>
-        <button class="js-save button-list__button button">Add</button>
-      </div>
+        <h2 class="sidebar__element sidebar__element--is-fixed title">Available cities</h2>
+        <div class="sidebar__element sidebar__element--has-list" id="features"></div>
+        <h2 class="sidebar__element sidebar__element--is-fixed title">New layer contains</h2>
+        <div class="sidebar__element sidebar__element--has-list sidebar__element--is-small" id="new-layer"></div>
+        <div class="sidebar__element sidebar__element--is-fixed button-list">
+          <button class="js-cancel button-list__button button button--is-secondary">Cancel</button>
+          <button class="js-save button-list__button button">Add</button>
+        </div>
     </template>
 
     <template id="properties-template">
@@ -63,6 +63,32 @@
           </div>
         </div>
 
+        <div class="properties__pair">
+          <div class="properties__key">Marker</div>
+          <div class="properties__value">
+            <select class="input js-select">
+              <option value="circle">Circle</option>
+              <option value="image">Image</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="properties__group js-properties-marker"></div>
+
+    </template>
+
+    <template id="image-marker">
+      <div class="properties__pair">
+        <div class="properties__key">Images</div>
+        <div class="properties__value color-picker">
+          <img src="png/photo.png" class="" />
+          <img src="png/home.png" class="" />
+          <img src="png/plane.png" class="" />
+        </div>
+      </div>
+    </template>
+
+    <template id="circle-marker">
         <div class="properties__pair">
           <div class="properties__key">Fill color</div>
           <div class="properties__value js-fill-color-picker"></div>
