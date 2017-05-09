@@ -31,20 +31,20 @@
 
     <template id="main-sidebar">
       <div class="sidebar">
-      <h2 class="sidebar__element sidebar__element--is-fixed sidebar__element__title">Layers</h2>
+      <h2 class="sidebar__element sidebar__element--is-fixed title">Layers</h2>
         <div  class="sidebar__element sidebar__element--is-fixed sidebar__element--is-small" id="layers"></div>
         <div class="sidebar__element sidebar__element--is-fixed button-list">
           <button class="button-list__button button js-add-layer">Add layer</button>
         </div>
+      <section id="properties" class="sidebar__element"></section>
       </div>
-      <section id="properties"></section>
     </template>
 
     <template id="add-layer">
       <div class="sidebar">
-      <h2 class="sidebar__element sidebar__element--is-fixed sidebar__element__title">Available cities</h2>
+      <h2 class="sidebar__element sidebar__element--is-fixed title">Available cities</h2>
       <div class="sidebar__element sidebar__element--has-list" id="features"></div>
-      <h2 class="sidebar__element sidebar__element--is-fixed sidebar__element__title">New layer contains</h2>
+      <h2 class="sidebar__element sidebar__element--is-fixed title">New layer contains</h2>
       <div class="sidebar__element sidebar__element--has-list sidebar__element--is-small" id="new-layer"></div>
       <div class="sidebar__element sidebar__element--is-fixed button-list">
         <button class="js-cancel button-list__button button button--is-secondary">Cancel</button>
@@ -53,12 +53,12 @@
     </template>
 
     <template id="properties-template">
-      <h2 class="sidebar__element sidebar__element--is-fixed sidebar__element__title">Properties for <span id="layer-on-properties"></span></h2>
+      <h2 class="sidebar__element sidebar__element--is-fixed title">Properties for <span id="layer-on-properties"></span></h2>
 
       <div class="properties">
         <div class="properties__pair">
           <div class="properties__key">Name</div>
-          <div class="properties__value input js-name">
+          <div class="properties__value input">
             <input type="text" class="input js-name"></input>
           </div>
         </div>
