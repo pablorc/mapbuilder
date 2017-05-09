@@ -43,6 +43,8 @@ const Layers = function() {
   }
 
   that.map = (callback) => layers.map(callback);
+  that.length = () => layers.length;
+  that.getLayer = (index) => layers[index];
 
   return that;
 };
@@ -152,17 +154,29 @@ SelectLayerView.prototype.render = function() {
 }
 
 // SelectedFeatureView
-const SelectFeatureView = function(feature, onToggleCallback) {
-  this.feature = feature; this.onToggleCallback = onToggleCallback;
+const SelectFeatureView = function(feature, onToggleCallback, selected) {
+  this.feature = feature;
+  this.onToggleCallback = onToggleCallback;
+  this.selected = selected;
+}
+
+const setSelected = function(selected) {
+  this.selected = selected;
+  if (this.li) {
+    this.render();
+  }
 }
 
 SelectFeatureView.prototype.render = function() {
-  const li = document.createElement('li');
-  li.classList = 'item-list__item';
+  this.li = document.createElement('li');
+  this.li.classList = 'item-list__item';
+  if (this.selected) {
+    this.li.classList = this.li.classList + ' item-list__item--is-selected';
+  }
   const textNode = document.createTextNode(this.feature.attrs.properties.name);
-  li.appendChild(textNode);
-  li.addEventListener('click', () => this.onToggleCallback(li, this.feature));
-  return li;
+  this.li.appendChild(textNode);
+  this.li.addEventListener('click', () => this.onToggleCallback(this.li, this.feature));
+  return this.li;
 }
 
 // ListView
@@ -304,7 +318,11 @@ MainSidebar.prototype.render = function() {
   $addLayer.addEventListener('click', () => new AddLayer(this.layers, this.$el, this.features).render());
 
   this.properties = new PropertiesView(layers, 'properties');
-  this.properties.changeLayer(layers[layers.length - 1]);
+  console.log(layers)
+  console.log(layers.length());
+  console.log(layers.length() - 1);
+  const propertiesLayer = layers.getLayer(layers.length() - 1);
+  this.properties.changeLayer(propertiesLayer);
   const onLayerClick = (layer) => this.properties.changeLayer(layer);
   const layerViewBuilder = (layer) => new SelectLayerView(layer, onLayerClick);
   new ListView(layers, 'layers', layerViewBuilder).render();
@@ -327,6 +345,9 @@ AddLayer.prototype.render = function() {
     console.log($el, selectedFeature);
     $el.classList = $el.classList + ' item-list__item--is-selected';
     this.selectedFeatures.push(selectedFeature);
+
+    const selectFeatureViewBuilder = (feature) => new SelectFeatureView(feature, () => {}, true);
+    new ListView(this.selectedFeatures, 'new-layer', selectFeatureViewBuilder).render();
   };
   const selectFeatureViewBuilder = (feature) => new SelectFeatureView(feature, onToggleCallback);
   new ListView(this.features, 'features', selectFeatureViewBuilder).render();
@@ -344,11 +365,12 @@ AddLayer.prototype.render = function() {
 const start = (geojson) => {
   const features = geojson.features.map((feature) => new Feature(feature));
 
-  new MainSidebar(layers, document.querySelector('.js-sidebar'), features).render();
+  //new MainSidebar
+  new AddLayer(layers, document.querySelector('.js-sidebar'), features).render();
 }
 
 const layers = Layers();
-const map = new Map(layers, 'mapbox.light');
+const map = new Map(layers, 'mapbox.streets');
 map.render(MAP_DOM_ID);
 
 self.fetch(GEOJSON_URL)
