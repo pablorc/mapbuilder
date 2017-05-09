@@ -17,7 +17,7 @@ body {
   margin: 0;
 
   background-color: #f0f0f0;
-  font-family: sans-serif;
+  font-family: 'Lato', sans-serif;
 }
 
 .builder {
@@ -93,6 +93,7 @@ body {
 
 .item-list__item {
   border: 1px solid #f0f0f0;
+  font-size: 14px;
   margin: 3px 0;
   padding: 5px;
 
@@ -136,17 +137,20 @@ body {
 
 .sidebar__element--is-small {
   flex-shrink: 0;
-  height: 300px;
+  max-height: 300px;
 }
 
 .sidebar__element__title {
+  font-size: 18px;
+  margin: 10px 0;
+
   text-align: center;
+  font-weight: bold;
 }
 
 .sidebar__element--is-fixed {
   flex-grow: 0;
   flex-shrink: 0;
-  margin-top: 5px;
 }
 
 .button-list {
@@ -169,12 +173,15 @@ body {
 
 .button {
   border: 1px solid #f0f0f0;
+  margin: 5px;
   padding: 10px 0;
 
-  background-color: #0eac53;/*#f44034;*/
+  background-color: #0eac53;
+  border-radius: 4px;
   color: #fff;
   cursor: pointer;
 }
+
 .button--is-secondary {
   background-color: white;
   color: #333;
