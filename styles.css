@@ -72,6 +72,7 @@ body {
 
 .color-picker {
   display: flex;
+  justify-content: space-around;
 }
 
 .color-picker__option:not(:last-child) {
@@ -186,4 +187,36 @@ body {
   background-color: white;
   color: #333;
   border: 0 none;
+}
+
+.properties {
+  border-collapse: collapse;
+  display: table;
+  width: 100%;
+}
+
+.properties__pair {
+  display: table-row;
+  border-top: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.properties__key {
+  display: table-cell;
+  font-size: 14px;
+  padding: 10px;
+  vertical-align: middle;
+}
+
+.properties__value {
+  border-left: 1px solid #f0f0f0;
+  display: table-cell;
+  text-align: right;
+  padding: 10px;
+  vertical-align: middle;
+}
+
+.input {
+  box-sizing: border-box;
+  width: 100%;
 }

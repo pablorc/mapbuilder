@@ -31,6 +31,7 @@
 
     <template id="main-sidebar">
       <div class="sidebar">
+      <h2 class="sidebar__element sidebar__element--is-fixed sidebar__element__title">Layers</h2>
         <div  class="sidebar__element sidebar__element--is-fixed sidebar__element--is-small" id="layers"></div>
         <div class="sidebar__element sidebar__element--is-fixed button-list">
           <button class="button-list__button button js-add-layer">Add layer</button>
@@ -54,30 +55,39 @@
     <template id="properties-template">
       <h2 class="sidebar__element sidebar__element--is-fixed sidebar__element__title">Properties for <span id="layer-on-properties"></span></h2>
 
-      <p>
-      Name <input type="text" class="js-name"></input>
-      </p>
+      <div class="properties">
+        <div class="properties__pair">
+          <div class="properties__key">Name</div>
+          <div class="properties__value input js-name">
+            <input type="text" class="input js-name"></input>
+          </div>
+        </div>
 
-      <p>
-      Fill color <div class="js-fill-color-picker"></div>
-      </p>
+        <div class="properties__pair">
+          <div class="properties__key">Fill color</div>
+          <div class="properties__value js-fill-color-picker"></div>
+        </div>
 
-      <p>
-      Stroke color <div class="js-stroke-color-picker"></div>
-      </p>
+        <div class="properties__pair">
+          <div class="properties__key">Stroke color</div>
+          <div class="properties__value js-stroke-color-picker"></div>
+        </div>
 
-      <p>
-      Radius <div class="js-radius"></div>
-      </p>
+        <div class="properties__pair">
+          <div class="properties__key">Radius</div>
+          <div class="properties__value js-radius"></div>
+        </div>
 
-      <p>
-      Weight <div class="js-weight"></div>
-      </p>
+        <div class="properties__pair">
+          <div class="properties__key">Weight</div>
+          <div class="properties__value js-weight"></div>
+        </div>
 
-      <p>
-      Opacity <div class="js-opacity"></div>
-      </p>
-
+        <div class="properties__pair">
+          <div class="properties__key">Opacity</div>
+          <div class="properties__value js-opacity"></div>
+        </div>
+      </div>
     </template>
 
     <template id="color-picker">
@@ -90,7 +100,7 @@
     </template>
 
     <template id="number-selector">
-      <input type="range" class="js-input-number">
+      <input type="range" class="js-input-number input">
     </template>
   </body>
 </html>
