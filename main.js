@@ -104,7 +104,7 @@ const Layer = function(features) {
     self.notifySuscriptors('layer.renamed', self);
   }
 
-  self.getStyle = () => style[preferredStyle];
+  self.getStyles = () => style[preferredStyle];
 
   self.toGeoJSON = () => {
     return {
@@ -172,14 +172,14 @@ const Map = function(layers, id) {
   };
 
   self.prepareFeature = (latlng, layer) => {
-    const style = layer.getStyle();
+    const style = layer.getStyles();
     if (style.color) {
       const options = Object.assign({
         radius: 8,
         weight: 1,
         opacity: 1,
         fillOpacity: 0.8
-      }, layer.getStyle());
+      }, layer.getStyles());
       return L.circleMarker(latlng, options);
     } else {
       return L.marker(latlng, { icon: self.icons()[style.image] });
@@ -279,7 +279,7 @@ const PickerView = function(layer, $el, style, options, optionBuilder) {
 
     const colorOptions = options.map((color) => {
       const option = optionBuilder(layer, color);
-      if (color === layer.getStyle()[style]) {
+      if (color === layer.getStyles()[style]) {
 
         option.classList.add(isSelectedClass);
       }
@@ -293,7 +293,7 @@ const PickerView = function(layer, $el, style, options, optionBuilder) {
   return self;
 }
 
-NumberSelectorView = function(layer, $el, style, value, maxSize, step = 1) {
+NumberSelectorView = function(layer, $el, style, maxSize, step = 1) {
   const self = new Object();
 
   self.render = () => {
@@ -301,7 +301,7 @@ NumberSelectorView = function(layer, $el, style, value, maxSize, step = 1) {
     var templateCopy = document.importNode(template.content, true);
     const $input = templateCopy.querySelector('.js-input-number');
     $input.setAttribute('max',   maxSize);
-    $input.setAttribute('value', value);
+    $input.setAttribute('value', layer.getStyles()[style]);
     $input.setAttribute('step',  step);
 
     $input.addEventListener('input', () => {
@@ -412,10 +412,10 @@ CirclePropertiesView = function(layers, layer, $el) {
 
     PickerView(layer, templateCopy.querySelector('.js-stroke-color-picker'), 'color', COLORS, ColorToPickBuilder).render();
     PickerView(layer, templateCopy.querySelector('.js-fill-color-picker'), 'fillColor', COLORS, ColorToPickBuilder).render();
-    NumberSelectorView(layer, templateCopy.querySelector('.js-radius'), 'radius', 8, 50).render();
-    NumberSelectorView(layer, templateCopy.querySelector('.js-weight'), 'weight', 1, 20).render();
-    NumberSelectorView(layer, templateCopy.querySelector('.js-stroke-opacity'), 'opacity', 1, 1, 0.1).render();
-    NumberSelectorView(layer, templateCopy.querySelector('.js-fill-opacity'), 'fillOpacity', 1, 1, 0.1).render();
+    NumberSelectorView(layer, templateCopy.querySelector('.js-radius'), 'radius', 50).render();
+    NumberSelectorView(layer, templateCopy.querySelector('.js-weight'), 'weight', 20).render();
+    NumberSelectorView(layer, templateCopy.querySelector('.js-stroke-opacity'), 'opacity', 1, 0.1).render();
+    NumberSelectorView(layer, templateCopy.querySelector('.js-fill-opacity'), 'fillOpacity', 1, 0.1).render();
 
     $el.innerHTML = '';
     $el.appendChild(templateCopy);

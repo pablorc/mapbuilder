@@ -43,7 +43,7 @@ body {
   height: calc(100% - var(--properties-height) - var(--general-margin) * 2);
   width: 100%;
 
-  box-shadow: 0px 0px 25px 2px #bbb;
+  box-shadow: 0px 0px 2px 1px #bbb;
 }
 
 .builder__main-area__properties {
