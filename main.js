@@ -272,81 +272,80 @@ const PickerView = function(layer, $el, style, options, optionBuilder) {
   return that;
 }
 
-NumberSelectorView = function(layer, $el, style, value, maxSize, step) {
-  this.layer = layer;
-  this.$el = $el;
-  this.style = style;
-  this.maxSize = maxSize;
-  this.value = value;
-  this.step = step || 1;
-}
+NumberSelectorView = function(layer, $el, style, value, maxSize, step = 1) {
+  const that = new Object();
 
-NumberSelectorView.prototype.render = function() {
-  const template = document.querySelector('#number-selector');
-  var templateCopy = document.importNode(template.content, true);
-  const $input = templateCopy.querySelector('.js-input-number');
-  $input.setAttribute('max', this.maxSize);
-  $input.setAttribute('value', this.value);
-  $input.setAttribute('step', this.step);
+  that.render = () => {
+    const template = document.querySelector('#number-selector');
+    var templateCopy = document.importNode(template.content, true);
+    const $input = templateCopy.querySelector('.js-input-number');
+    $input.setAttribute('max',   maxSize);
+    $input.setAttribute('value', value);
+    $input.setAttribute('step',  step);
 
-  $input.addEventListener('input', () => {
-    this.layer.setStyle(this.style, $input.value);
-  });
+    $input.addEventListener('input', () => {
+      layer.setStyle(style, $input.value);
+    });
 
-  this.$el.innerHTML = '';
-  this.$el.appendChild(templateCopy);
+    $el.innerHTML = '';
+    $el.appendChild(templateCopy);
+  }
+  return that;
 }
 
 // PropertiesView
 const PropertiesView = function(layers, domId) {
-  this.domId = domId;
-  layers.subscribe(this);
-}
+  const that = new Object();
+  let layer;
+  layers.subscribe(that);
 
-PropertiesView.prototype.changeLayer = function(layer) {
-    this.layer = layer;
-    this.render();
-}
-PropertiesView.prototype.notify = function(event, layer) {
-  if (event === 'layer.added') {
-    //this.changeLayer(layer);
-  }
-}
-
-PropertiesView.prototype.render = function() {
-  if (!this.layer) {
-    return;
+  that.changeLayer = function(newLayer) {
+    layer = newLayer;
+    that.render();
   }
 
-  const template = document.querySelector('#properties-template');
-  template.content.querySelector("#layer-on-properties").innerHTML = this.layer.name;
-
-  var templateCopy = document.importNode(template.content, true);
-
-  const root = document.getElementById(this.domId);
-
-  const $nameInput = templateCopy.querySelector('.js-name');
-  $nameInput.setAttribute('value', this.layer.name);
-  $nameInput.addEventListener('keyup', () => this.layer.setName($nameInput.value));
-
-  new CirclePropertiesView(this.layers, this.layer, templateCopy.querySelector('.js-properties-marker')).render();
-
-  const $select = templateCopy.querySelector('.js-select');
-  $select.value = this.layer.getPreferredStyle();
-
-  root.innerHTML = '';
-  root.appendChild(templateCopy);
-
-  const setProperties = () => {
-    this.layer.setPreferredStyle($select.value);
-    if ($select.value === 'image') {
-      new ImagePropertiesView(this.layers, this.layer, document.querySelector('.js-properties-marker')).render();
-    } else {
-      new CirclePropertiesView(this.layers, this.layer, document.querySelector('.js-properties-marker')).render();
+  that.notify = function(event, layer) {
+    if (event === 'layer.added') {
+      //this.changeLayer(layer);
     }
   }
-  $select.addEventListener('change', setProperties);
-  setProperties(this.layer.getPreferredStyle());
+
+  that.render = function() {
+    if (!layer) {
+      return;
+    }
+
+    const template = document.querySelector('#properties-template');
+    template.content.querySelector("#layer-on-properties").innerHTML = layer.name;
+
+    var templateCopy = document.importNode(template.content, true);
+
+    const root = document.getElementById(domId);
+
+    const $nameInput = templateCopy.querySelector('.js-name');
+    $nameInput.setAttribute('value', layer.name);
+    $nameInput.addEventListener('keyup', () => layer.setName($nameInput.value));
+
+    new CirclePropertiesView(layers, layer, templateCopy.querySelector('.js-properties-marker')).render();
+
+    const $select = templateCopy.querySelector('.js-select');
+    $select.value = layer.getPreferredStyle();
+
+    root.innerHTML = '';
+    root.appendChild(templateCopy);
+
+    const setProperties = () => {
+      layer.setPreferredStyle($select.value);
+      if ($select.value === 'image') {
+        new ImagePropertiesView(layers, layer, document.querySelector('.js-properties-marker')).render();
+      } else {
+        new CirclePropertiesView(layers, layer, document.querySelector('.js-properties-marker')).render();
+      }
+    }
+    $select.addEventListener('change', setProperties);
+    setProperties(layer.getPreferredStyle());
+  }
+  return that;
 }
 
 const ColorToPickBuilder = (layer, color, style) => {
@@ -401,9 +400,9 @@ CirclePropertiesView.prototype.render = function() {
 
   new PickerView(this.layer, templateCopy.querySelector('.js-stroke-color-picker'), 'color', COLORS, ColorToPickBuilder).render();
   new PickerView(this.layer, templateCopy.querySelector('.js-fill-color-picker'), 'fillColor', COLORS, ColorToPickBuilder).render();
-  new NumberSelectorView(this.layer, templateCopy.querySelector('.js-radius'), 'radius', 8, 50).render();
-  new NumberSelectorView(this.layer, templateCopy.querySelector('.js-weight'), 'weight', 1, 20).render();
-  new NumberSelectorView(this.layer, templateCopy.querySelector('.js-opacity'), 'opacity', 0, 1, 0.1).render();
+  NumberSelectorView(this.layer, templateCopy.querySelector('.js-radius'), 'radius', 8, 50).render();
+  NumberSelectorView(this.layer, templateCopy.querySelector('.js-weight'), 'weight', 1, 20).render();
+  NumberSelectorView(this.layer, templateCopy.querySelector('.js-opacity'), 'opacity', 0, 1, 0.1).render();
 
   root.innerHTML = '';
   root.appendChild(templateCopy);
@@ -425,7 +424,7 @@ MainSidebar.prototype.render = function() {
   const $addLayer = document.querySelector('.js-add-layer');
   $addLayer.addEventListener('click', () => new AddLayer(this.layers, this.$el, this.features).render());
 
-  this.properties = new PropertiesView(layers, 'properties');
+  this.properties = PropertiesView(layers, 'properties');
   const propertiesLayer = layers.getLayer(layers.length() - 1);
   this.properties.changeLayer(propertiesLayer);
   const onLayerClick = (layer) => this.properties.changeLayer(layer);
