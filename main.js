@@ -1,3 +1,5 @@
+//// Settings
+
 const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoicGFibG9yYyIsImEiOiJjajI3djNyOXAwMGR3MndzMWV2cjJicHo3In0.EIxpAD7wO3gmdkqt4ozKbg';
 const GEOJSON_URL = 'https://xavijam.carto.com/api/v2/sql?q=SELECT%20*%20FROM%20ne_10m_populated_places_simple&format=GeoJSON';
 const MAP_DOM_ID = 'map';
@@ -14,9 +16,9 @@ const COLORS = [
 ];
 const IMAGES = ['home', 'camera', 'plane', 'briefcase'].map((filename) => `png/${filename}.png`);
 
-// Model objects
+//// Model objects
 
-// Publisher
+// Publisher TODO
 const Publisher = function() {
   let handlers = [];
 
@@ -27,7 +29,7 @@ const Publisher = function() {
     return self;
 }
 
-// Layers
+// Layers TODO
 const Layers = function() {
   const layers = [];
 
@@ -50,7 +52,7 @@ const Layers = function() {
   return self;
 };
 
-// Feature
+// Feature TODO
 const Feature = function(attrs) {
   const self = new Object();
 
@@ -60,7 +62,7 @@ const Feature = function(attrs) {
   return self;
 }
 
-// Layer
+// Layer TODO
 const Layer = function(features) {
   const self = Object.create(new Publisher());
   let name;
@@ -123,9 +125,12 @@ const Layer = function(features) {
   return self;
 }
 
-// View object
+///// View objects
 
-// Map
+/* Represents a Map
+ * @param layers The layers array to render
+ * @param id The Mapbox ID to print the tiles
+ */
 const Map = function(layers, id) {
   let map;
   let baseLayer;
@@ -195,8 +200,11 @@ const Map = function(layers, id) {
   return self;
 };
 
-
-// SelectedLayerView
+/*
+ * Represents a layer. Made to be used inside a ListView
+ * @param layer The layer itself
+ * @param onClickCallback Callback to execute on click
+ */
 const SelectLayerView = (layer, onClickCallback) => {
   const self = new Object();
   layer.subscribe(self);
@@ -217,7 +225,12 @@ const SelectLayerView = (layer, onClickCallback) => {
   return self;
 }
 
-// SelectedFeatureView
+/*
+ * Represents a feature. Made to be used inside a ListView
+ * @param feature The feature itself
+ * @param onToggleCallback Callback to execute on click
+ * @param selected Boolean to know if the element is selected or don't
+ */
 const SelectFeatureView = function(feature, onToggleCallback, selected) {
   const self = new Object();
 
@@ -236,11 +249,17 @@ const SelectFeatureView = function(feature, onToggleCallback, selected) {
   return self;
 }
 
-// ListView
+/*
+ * Represents a component that list elements
+ * @params items The items to list
+ * @params domId the DOM element's ID where the component should be rendered
+ * @params itemBuilder A function that creates each item
+ */
 const ListView = function(items, domId, itemBuilder) {
   const self = new Object();
   items.subscribe && items.subscribe(self);
 
+  /* To listen to events */
   self.notify = (event, subject) => self.render();
 
   self.render = () => {
@@ -260,7 +279,14 @@ const ListView = function(items, domId, itemBuilder) {
   return self;
 }
 
-// PickerView
+/*
+ * Represents a component to pick an option from a list of options
+ * @param layer The layer being modified
+ * @param $el The DOM element where the component should be rendered
+ * @param style The name of the style being modified
+ * @param options The list of values the style can have
+ * @param optionBuilder Function that creates each concrete option
+ */
 const PickerView = function(layer, $el, style, options, optionBuilder) {
   const self = new Object();
   const isSelectedClass = '--is-selected';
@@ -293,6 +319,14 @@ const PickerView = function(layer, $el, style, options, optionBuilder) {
   return self;
 }
 
+/*
+ * Represents a component to select a number inside a range
+ * @param layer The layer being modified
+ * @param $el The DOM element where the component should be rendered
+ * @param style The name of the style being modified
+ * @param maxSize Upper limit for the value selected
+ * @param step Value for the step attribute @ HTML. 1 by default
+ */
 NumberSelectorView = function(layer, $el, style, maxSize, step = 1) {
   const self = new Object();
 
@@ -314,28 +348,36 @@ NumberSelectorView = function(layer, $el, style, maxSize, step = 1) {
   return self;
 }
 
-// PropertiesView
+/*
+ * Represents the complete group of properties that a layer can modify
+ * @param layers All the layers
+ * @param domId The element's id where the component should be rendered
+ */
 const PropertiesView = function(layers, domId) {
   const self = new Object();
   let layer;
   layers.subscribe(self);
 
+  /* Changes the layer to modify */
   self.changeLayer = (newLayer) => {
     layer = newLayer;
     self.render();
   }
 
+  /* Notify function to listen changes of the layers */
   self.notify = (event, layer) => {
     if (event === 'layer.renamed') {
       self.updateTitle(document);
     }
   }
 
+  /*
+   * Updates the title with the layer's name
+   */
   self.updateTitle = (dom) => dom.querySelector("#layer-on-properties").innerHTML = layer.getName();
 
   self.render = () => {
     const template = document.querySelector('#properties-template');
-    self.updateTitle(template.content);
 
     var templateCopy = document.importNode(template.content, true);
 
@@ -352,6 +394,7 @@ const PropertiesView = function(layers, domId) {
 
     root.innerHTML = '';
     root.appendChild(templateCopy);
+    self.updateTitle(document);
 
     const setProperties = () => {
       layer.setPreferredStyle($select.value);
@@ -367,24 +410,23 @@ const PropertiesView = function(layers, domId) {
   return self;
 }
 
-const ColorToPickBuilder = (layer, color, style) => {
-  const colorTemplate = document.querySelector('#color-picker-option');
-  const colorOptionCopy = document.importNode(colorTemplate.content, true);
-  const option = colorOptionCopy.querySelector('.js-option');
-  option.style.backgroundColor = color;
-  return option;
-}
-
-const ImageToPickBuilder = (layer, color, style) => {
-  const colorTemplate = document.querySelector('#image-picker-option');
-  const colorOptionCopy = document.importNode(colorTemplate.content, true);
-  const option = colorOptionCopy.querySelector('.js-option');
-  option.setAttribute('src', color);
-  return option;
-}
-
+/*
+ * Represents a component where all the icon marker's properties can be modified
+ * @param layers The list of layers
+ * @params layer The layer to modify
+ * @param $el The DOM element where it should be rendered
+ */
 ImagePropertiesView = function(layers, layer, $el) {
   const self = new Object();
+
+  /* Method to build each image to render inside the Picker element */
+  const ImageToPickBuilder = (layer, color, style) => {
+    const colorTemplate = document.querySelector('#image-picker-option');
+    const colorOptionCopy = document.importNode(colorTemplate.content, true);
+    const option = colorOptionCopy.querySelector('.js-option');
+    option.setAttribute('src', color);
+    return option;
+  }
 
   self.render = () => {
     const template = document.querySelector('#image-marker');
@@ -399,8 +441,23 @@ ImagePropertiesView = function(layers, layer, $el) {
   return self;
 }
 
+/*
+ * Represents a component where all the circle marker's properties can be modified
+ * @param layers The list of layers
+ * @params layer The layer to modify
+ * @param $el The DOM element where it should be rendered
+ */
 CirclePropertiesView = function(layers, layer, $el) {
   const self = new Object();
+
+  /* Method to build each color to render inside the Picker element */
+  const ColorToPickBuilder = (layer, color, style) => {
+    const colorTemplate = document.querySelector('#color-picker-option');
+    const colorOptionCopy = document.importNode(colorTemplate.content, true);
+    const option = colorOptionCopy.querySelector('.js-option');
+    option.style.backgroundColor = color;
+    return option;
+  }
 
   self.render = () => {
     if (!layer) {
@@ -423,7 +480,12 @@ CirclePropertiesView = function(layers, layer, $el) {
   return self;
 }
 
-// App initialization
+/*
+ * Represents a Sidebar where layers can be modified by a PropertyView
+ * @param layers The list of layers
+ * @param $el The DOM element where the sidebar should be rendered
+ * @param features The complete list of features that can be used
+ */
 const MainSidebar = function(layers, $el, features) {
   const self = new Object();
 
@@ -446,6 +508,12 @@ const MainSidebar = function(layers, $el, features) {
   return self;
 }
 
+/*
+ * Represents a sidebar component where a new layer can be created
+ * @param layers The list of layers
+ * @param $el The DOM element where the sidebar should be rendered
+ * @param features The complete list of features that can be used
+ */
 AddLayer = function(layers, $el, features) {
   const self = new Object();
   let selectedFeatures = [];
