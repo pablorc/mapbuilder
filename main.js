@@ -331,12 +331,12 @@ const PickerView = function(layer, $el, style, options, optionBuilder) {
  * @param step - Value for the step attribute @ HTML. 1 by default
  */
 NumberSelectorView = function(layer, $el, style, maxSize, step = 1) {
-  const self = new Object();
+  const self = new BaseView();
 
   self.render = () => {
-    const template = document.querySelector('#number-selector');
-    const templateCopy = document.importNode(template.content, true);
-    const $input = templateCopy.querySelector('.js-input-number');
+    self.renderFromTemplate('#number-selector', $el);
+
+    const $input = document.querySelector('.js-input-number');
     $input.setAttribute('max',   maxSize);
     $input.setAttribute('value', layer.getStyles()[style]);
     $input.setAttribute('step',  step);
@@ -345,8 +345,6 @@ NumberSelectorView = function(layer, $el, style, maxSize, step = 1) {
       layer.setStyle(style, $input.value);
     });
 
-    $el.innerHTML = '';
-    $el.appendChild(templateCopy);
   }
   return self;
 }
@@ -357,7 +355,7 @@ NumberSelectorView = function(layer, $el, style, maxSize, step = 1) {
  * @param domId - The element's id where the component should be rendered
  */
 const PropertiesView = function(layers, domId) {
-  const self = new Object();
+  const self = new BaseView();
   let layer;
   layers.subscribe(self);
 
@@ -388,17 +386,14 @@ const PropertiesView = function(layers, domId) {
   }
 
   self.render = () => {
-    const template = document.querySelector('#properties-template');
-    const templateCopy = document.importNode(template.content, true);
-    const root = document.getElementById(domId);
-    root.innerHTML = '';
-    root.appendChild(templateCopy);
+    const $el = document.getElementById(domId);
+    self.renderFromTemplate('#properties-template', $el);
 
-    const $nameInput = root.querySelector('.js-name');
+    const $nameInput = $el.querySelector('.js-name');
     $nameInput.setAttribute('value', layer.getName());
     $nameInput.addEventListener('keyup', () => layer.setName($nameInput.value));
 
-    CirclePropertiesView(layer, root.querySelector('.js-properties-marker')).render();
+    CirclePropertiesView(layer, $el.querySelector('.js-properties-marker')).render();
 
     const $select = document.querySelector('.js-select');
     $select.value = layer.getPreferredStyle();
@@ -417,7 +412,7 @@ const PropertiesView = function(layers, domId) {
  * @param $el - The DOM element where it should be rendered
  */
 ImagePropertiesView = function(layer, $el) {
-  const self = new Object();
+  const self = new BaseView();
 
   /* Method to build each image to render inside the Picker element */
   const ImageToPickBuilder = (layer, color, style) => {
@@ -429,13 +424,9 @@ ImagePropertiesView = function(layer, $el) {
   }
 
   self.render = () => {
-    const template = document.querySelector('#image-marker');
-    const templateCopy = document.importNode(template.content, true);
-    $el.innerHTML = '';
-    $el.appendChild(templateCopy);
+    self.renderFromTemplate('#image-marker', $el);
 
     PickerView(layer, document.querySelector('.js-image-picker'), 'image', IMAGES, ImageToPickBuilder).render();
-
   }
 
   return self;
@@ -476,6 +467,9 @@ CirclePropertiesView = function(layer, $el) {
   return self;
 }
 
+/*
+ * Base class for Views
+ */
 const BaseView = function() {
   const self = new Object();
 
