@@ -65,7 +65,7 @@ const Layer = function(features) {
 
   that.style = {
     fillColor: COLORS[0],
-    stroke: COLORS[1],
+    color: COLORS[1],
   };
 
   that.name = features.map((feature) => feature.attrs.properties.name).slice(0,4).join(', ')  + (features.length > 4 ? ',...' : '');
@@ -118,7 +118,6 @@ Map.prototype.resetLayer = function(layer) {
 
 Map.prototype.icons = function() {
   return IMAGES.reduce((dict, filename) => {
-    console.log(filename, dict);
     dict[filename] = L.icon({
       iconUrl: filename,
       iconSize: [16, 16],
@@ -238,16 +237,19 @@ ColorPickerView.prototype.render = function() {
   const templateCopy = document.importNode(template.content, true);
   const $root = templateCopy.querySelector('.js-color-picker');
   const colorTemplate = document.querySelector('#color-picker-option');
+  const isSelectedClass = 'color-picker__option__color--is-selected';
 
   const colorOptions = COLORS.map((color) => {
     const colorOptionCopy = document.importNode(colorTemplate.content, true);
     const option = colorOptionCopy.querySelector('.js-color');
     option.style.backgroundColor = color;
     if (color === this.layer.style[this.style]) {
-      console.log('selected', color);
-      option.classList.add('color-picker__option__color--is-selected');
+      option.classList.add(isSelectedClass);
     }
-    option.addEventListener('click', () => {
+    option.addEventListener('click', (event) => {
+      const nodes = this.$el.querySelectorAll('.js-color');
+      [].forEach.call(nodes, (color) => color.classList.remove(isSelectedClass));
+      event.target.classList.add(isSelectedClass);
       this.layer.setStyle(this.style, color);
     });
     $root.appendChild(colorOptionCopy);
@@ -275,11 +277,9 @@ ImageSelector.prototype.render = function() {
     const option = colorOptionCopy.querySelector('.js-image');
     option.setAttribute('src',  image);
     if (image === this.layer.style[this.style]) {
-      console.log('selected', image);
       option.classList.add('image-picker__option__color--is-selected');
     }
     option.addEventListener('click', () => {
-      console.log('click', image);
       //this.layer.setStyle(this.style, image);
     });
     $root.appendChild(colorOptionCopy);
@@ -447,7 +447,6 @@ AddLayer.prototype.render = function() {
     const selectedClass = 'item-list__item--is-selected';
     if ($el.classList.contains(selectedClass)) {
       const indexToRemove = this.selectedFeatures.indexOf(selectedFeature);
-      console.log(indexToRemove);
       this.selectedFeatures.splice(indexToRemove, 1);
       $el.classList.remove(selectedClass);
     } else {
