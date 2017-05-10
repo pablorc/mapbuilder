@@ -246,7 +246,7 @@ const ListView = function(items, domId, itemBuilder) {
 const PickerView = function(layer, $el, style, options, optionBuilder) {
   const that = new Object();
 
-  that.render = function() {
+  that.render = () => {
     const template = document.querySelector('#color-picker');
     const templateCopy = document.importNode(template.content, true);
     const $root = templateCopy.querySelector('.js-color-picker');
@@ -337,9 +337,9 @@ const PropertiesView = function(layers, domId) {
     const setProperties = () => {
       layer.setPreferredStyle($select.value);
       if ($select.value === 'image') {
-        new ImagePropertiesView(layers, layer, document.querySelector('.js-properties-marker')).render();
+        ImagePropertiesView(layers, layer, document.querySelector('.js-properties-marker')).render();
       } else {
-        new CirclePropertiesView(layers, layer, document.querySelector('.js-properties-marker')).render();
+        CirclePropertiesView(layers, layer, document.querySelector('.js-properties-marker')).render();
       }
     }
     $select.addEventListener('change', setProperties);
@@ -364,48 +364,43 @@ const ImageToPickBuilder = (layer, color, style) => {
   return option;
 }
 
-ImagePropertiesView = function(layers, layer, domId) {
-  this.layers =  layers;
-  this.layer = layer;
-  this.domId = domId;
-}
+ImagePropertiesView = function(layers, layer, $el) {
+  const that = new Object();
 
-ImagePropertiesView.prototype.render = function() {
-  const template = document.querySelector('#image-marker');
-  var templateCopy = document.importNode(template.content, true);
+  that.render = function() {
+    const template = document.querySelector('#image-marker');
+    var templateCopy = document.importNode(template.content, true);
 
-  const root = this.domId;
+    PickerView(layer, templateCopy.querySelector('.js-image-picker'), 'image', IMAGES, ImageToPickBuilder).render();
 
-  new PickerView(this.layer, templateCopy.querySelector('.js-image-picker'), 'image', IMAGES, ImageToPickBuilder).render();
-
-  root.innerHTML = '';
-  root.appendChild(templateCopy);
-}
-
-CirclePropertiesView = function(layers, layer, domId) {
-  this.layers =  layers;
-  this.layer = layer;
-  this.domId = domId;
-}
-
-CirclePropertiesView.prototype.render = function() {
-  if (!this.layer) {
-    return;
+    $el.innerHTML = '';
+    $el.appendChild(templateCopy);
   }
 
-  const template = document.querySelector('#circle-marker');
-  var templateCopy = document.importNode(template.content, true);
+  return that;
+}
 
-  const root = this.domId;
+CirclePropertiesView = function(layers, layer, $el) {
+  const that = new Object();
 
-  new PickerView(this.layer, templateCopy.querySelector('.js-stroke-color-picker'), 'color', COLORS, ColorToPickBuilder).render();
-  new PickerView(this.layer, templateCopy.querySelector('.js-fill-color-picker'), 'fillColor', COLORS, ColorToPickBuilder).render();
-  NumberSelectorView(this.layer, templateCopy.querySelector('.js-radius'), 'radius', 8, 50).render();
-  NumberSelectorView(this.layer, templateCopy.querySelector('.js-weight'), 'weight', 1, 20).render();
-  NumberSelectorView(this.layer, templateCopy.querySelector('.js-opacity'), 'opacity', 0, 1, 0.1).render();
+  that.render = function() {
+    if (!layer) {
+      return;
+    }
 
-  root.innerHTML = '';
-  root.appendChild(templateCopy);
+    const template = document.querySelector('#circle-marker');
+    var templateCopy = document.importNode(template.content, true);
+
+    PickerView(layer, templateCopy.querySelector('.js-stroke-color-picker'), 'color', COLORS, ColorToPickBuilder).render();
+    PickerView(layer, templateCopy.querySelector('.js-fill-color-picker'), 'fillColor', COLORS, ColorToPickBuilder).render();
+    NumberSelectorView(layer, templateCopy.querySelector('.js-radius'), 'radius', 8, 50).render();
+    NumberSelectorView(layer, templateCopy.querySelector('.js-weight'), 'weight', 1, 20).render();
+    NumberSelectorView(layer, templateCopy.querySelector('.js-opacity'), 'opacity', 0, 1, 0.1).render();
+
+    $el.innerHTML = '';
+    $el.appendChild(templateCopy);
+  }
+  return that;
 }
 
 // App initialization
