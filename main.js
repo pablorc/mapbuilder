@@ -63,8 +63,17 @@ const Feature = function(attrs) {
 // Layer
 const Layer = function(features) {
   const self = Object.create(new Publisher());
-
+  let name;
   let preferredStyle = 'circle';
+
+  const getDefaultName = () => {
+    const howManyEnumerate = 2;
+    const tail = features.length > howManyEnumerate ? ` and ${features.length - howManyEnumerate} more` : '';
+    const names = features.slice(0, howManyEnumerate).map((feature) => feature.getName());
+
+    return names.join(', ') + tail;
+  };
+
   const style = {
     circle: {
       fillColor: COLORS[0],
@@ -75,15 +84,20 @@ const Layer = function(features) {
     }
   };
 
-  self.name = features.map((feature) => feature.getName()).slice(0,4).join(', ')  + (features.length > 4 ? ',...' : '');
+  self.getName = () => {
+    if (name) {
+      return name;
+    }
+    return getDefaultName();
+  }
 
   self.setStyle = (key, value) => {
     style[preferredStyle][key] = value;
     self.notifySuscriptors('layer.restyled', self);
   }
 
-  self.setName = (name) => {
-    self.name = name;
+  self.setName = (newName) => {
+    name = newName;
     self.notifySuscriptors('layer.renamed', self);
   }
 
@@ -110,7 +124,8 @@ const Layer = function(features) {
 
 // Map
 const Map = function(layers, id) {
-  this.layers = layers;
+  let map;
+  let baseLayer;
 
   const self = new Object();
   layers.subscribe(self);
@@ -127,7 +142,7 @@ const Map = function(layers, id) {
   }
 
   self.resetLayer = (layer) => {
-    self.map.eachLayer((layer) => layer !== self.baseLayer ? self.map.removeLayer(layer) : '');
+    map.eachLayer((layer) => layer !== baseLayer ? map.removeLayer(layer) : '');
     layers.map((layer) => self.addLayer(layer));
   }
 
@@ -146,11 +161,11 @@ const Map = function(layers, id) {
   }
 
   self.render = (domID) => {
-    self.map = L.map(domID).setView([5,0], 2);
-    self.baseLayer = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+    map = L.map(domID).setView([5,0], 2);
+    baseLayer = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
         id: id,
         accessToken: MAPBOX_ACCESS_TOKEN
-        }).addTo(self.map);
+        }).addTo(map);
   };
 
   self.prepareFeature = (latlng, layer) => {
@@ -171,7 +186,7 @@ const Map = function(layers, id) {
   self.addLayer = (layer) => {
     L.geoJSON(layer.toGeoJSON(), {
       pointToLayer: (feature, latlng) => self.prepareFeature(latlng, layer)
-    }).addTo(self.map);
+    }).addTo(map);
   };
 
   return self;
@@ -190,7 +205,7 @@ const SelectLayerView = (layer, onClickCallback) => {
   self.render = () => {
     const li = document.createElement('li');
     li.classList = 'item-list__item';
-    const textNode = document.createTextNode(layer.name);
+    const textNode = document.createTextNode(layer.getName());
     li.appendChild(textNode);
     li.addEventListener('click', () => onClickCallback(layer));
     return li;
@@ -305,10 +320,12 @@ const PropertiesView = function(layers, domId) {
   }
 
   self.notify = (event, layer) => {
-    if (event === 'layer.added') {
-      //this.changeLayer(layer);
+    if (event === 'layer.renamed') {
+      self.updateTitle(document);
     }
   }
+
+  self.updateTitle = (dom) => dom.querySelector("#layer-on-properties").innerHTML = layer.getName();
 
   self.render = () => {
     if (!layer) {
@@ -316,14 +333,14 @@ const PropertiesView = function(layers, domId) {
     }
 
     const template = document.querySelector('#properties-template');
-    template.content.querySelector("#layer-on-properties").innerHTML = layer.name;
+    self.updateTitle(template.content);
 
     var templateCopy = document.importNode(template.content, true);
 
     const root = document.getElementById(domId);
 
     const $nameInput = templateCopy.querySelector('.js-name');
-    $nameInput.setAttribute('value', layer.name);
+    $nameInput.setAttribute('value', layer.getName());
     $nameInput.addEventListener('keyup', () => layer.setName($nameInput.value));
 
     CirclePropertiesView(layers, layer, templateCopy.querySelector('.js-properties-marker')).render();

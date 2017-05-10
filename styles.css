@@ -84,6 +84,8 @@ body {
   border-radius: 25px;
   height: 25px;
   width: 25px;
+
+  cursor: pointer;
 }
 
 .color-picker__option__color.--is-selected {
@@ -233,6 +235,7 @@ body {
 .image-picker__option {
   border:1px solid transparent;
   border-radius: 5px;
+  cursor: pointer;
   padding: 5px;
 }
 
