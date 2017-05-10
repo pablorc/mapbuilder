@@ -385,6 +385,16 @@ const PropertiesView = function(layers, domId) {
    */
   self.updateTitle = () => document.querySelector("#layer-on-properties").innerHTML = layer.getName();
 
+  self.renderProperties = (layer) => {
+    const $select = document.querySelector('.js-select');
+    layer.setPreferredStyle($select.value);
+    if ($select.value === 'image') {
+      ImagePropertiesView(layer, document.querySelector('.js-properties-marker')).render();
+    } else {
+      CirclePropertiesView(layer, document.querySelector('.js-properties-marker')).render();
+    }
+  }
+
   self.render = () => {
     const template = document.querySelector('#properties-template');
     var templateCopy = document.importNode(template.content, true);
@@ -396,34 +406,25 @@ const PropertiesView = function(layers, domId) {
     $nameInput.setAttribute('value', layer.getName());
     $nameInput.addEventListener('keyup', () => layer.setName($nameInput.value));
 
-    CirclePropertiesView(layers, layer, root.querySelector('.js-properties-marker')).render();
+    CirclePropertiesView(layer, root.querySelector('.js-properties-marker')).render();
 
-    const $select = templateCopy.querySelector('.js-select');
+    const $select = document.querySelector('.js-select');
     $select.value = layer.getPreferredStyle();
 
     self.updateTitle();
 
-    const setProperties = () => {
-      layer.setPreferredStyle($select.value);
-      if ($select.value === 'image') {
-        ImagePropertiesView(layers, layer, document.querySelector('.js-properties-marker')).render();
-      } else {
-        CirclePropertiesView(layers, layer, document.querySelector('.js-properties-marker')).render();
-      }
-    }
-    $select.addEventListener('change', setProperties);
-    setProperties(layer.getPreferredStyle());
+    $select.addEventListener('change', () => self.renderProperties(layer));
+    self.renderProperties(layer);
   }
   return self;
 }
 
 /*
  * Represents a component where all the icon marker's properties can be modified
- * @param layers - The list of layers
  * @params layer - The layer to modify
  * @param $el - The DOM element where it should be rendered
  */
-ImagePropertiesView = function(layers, layer, $el) {
+ImagePropertiesView = function(layer, $el) {
   const self = new Object();
 
   /* Method to build each image to render inside the Picker element */
@@ -450,11 +451,10 @@ ImagePropertiesView = function(layers, layer, $el) {
 
 /*
  * Represents a component where all the circle marker's properties can be modified
- * @param layers - The list of layers
  * @params layer - The layer to modify
  * @param $el - The DOM element where it should be rendered
  */
-CirclePropertiesView = function(layers, layer, $el) {
+CirclePropertiesView = function(layer, $el) {
   const self = new Object();
 
   /* Function to build each color to render inside the Picker element */
