@@ -52,16 +52,18 @@ const Layers = function() {
 
 // Feature
 const Feature = function(attrs) {
-  this.attrs = attrs;
-};
+  const that = new Object();
 
-Feature.prototype.toGeoJSON = function() {
-  return this.attrs;
+  that.toGeoJSON = () => attrs;
+  that.getName = () => attrs.properties.name;
+
+  return that;
 }
 
 // Layer
 const Layer = function(features) {
   const that = Object.create(new Publisher());
+
   let preferredStyle = 'circle';
   const style = {
     circle: {
@@ -73,7 +75,7 @@ const Layer = function(features) {
     }
   };
 
-  that.name = features.map((feature) => feature.attrs.properties.name).slice(0,4).join(', ')  + (features.length > 4 ? ',...' : '');
+  that.name = features.map((feature) => feature.getName()).slice(0,4).join(', ')  + (features.length > 4 ? ',...' : '');
 
   that.setStyle = function(key, value) {
     style[preferredStyle][key] = value;
@@ -102,7 +104,6 @@ const Layer = function(features) {
   that.getPreferredStyle = () => preferredStyle;
 
   return that;
-
 }
 
 // View object
@@ -179,22 +180,23 @@ const Map = function(layers, id) {
 
 // SelectedLayerView
 const SelectLayerView = function(layer, onClickCallback) {
-  this.layer = layer;
-  this.onClickCallback = onClickCallback;
-  this.layer.subscribe(this);
-}
+  const that = new Object();
+  layer.subscribe(that);
 
-SelectLayerView.prototype.notify = function(event, subject) {
-  this.render();
-}
+  that.notify = (event, subject) => {
+    that.render();
+  }
 
-SelectLayerView.prototype.render = function() {
-  const li = document.createElement('li');
-  li.classList = 'item-list__item';
-  const textNode = document.createTextNode(this.layer.name);
-  li.appendChild(textNode);
-  li.addEventListener('click', () => this.onClickCallback(this.layer));
-  return li;
+  that.render = () => {
+    const li = document.createElement('li');
+    li.classList = 'item-list__item';
+    const textNode = document.createTextNode(layer.name);
+    li.appendChild(textNode);
+    li.addEventListener('click', () => onClickCallback(layer));
+    return li;
+  }
+
+  return that;
 }
 
 // SelectedFeatureView
@@ -217,7 +219,7 @@ SelectFeatureView.prototype.render = function() {
   if (this.selected) {
     this.li.classList.add('item-list__item--is-selected');
   }
-  const textNode = document.createTextNode(this.feature.attrs.properties.name);
+  const textNode = document.createTextNode(this.feature.getName());
   this.li.appendChild(textNode);
   this.li.addEventListener('click', () => this.onToggleCallback(this.li, this.feature));
   return this.li;
@@ -470,7 +472,7 @@ MainSidebar.prototype.render = function() {
   const propertiesLayer = layers.getLayer(layers.length() - 1);
   this.properties.changeLayer(propertiesLayer);
   const onLayerClick = (layer) => this.properties.changeLayer(layer);
-  const layerViewBuilder = (layer) => new SelectLayerView(layer, onLayerClick);
+  const layerViewBuilder = (layer) => SelectLayerView(layer, onLayerClick);
   new ListView(layers, 'layers', layerViewBuilder).render();
 }
 
@@ -515,7 +517,7 @@ AddLayer.prototype.render = function() {
 }
 
 const start = (geojson) => {
-  const features = geojson.features.map((feature) => new Feature(feature));
+  const features = geojson.features.map((feature) => Feature(feature));
 
   new AddLayer(layers, document.querySelector('.js-sidebar'), features).render();
 }
