@@ -326,7 +326,7 @@ const PropertiesView = function(layers, domId) {
     $nameInput.setAttribute('value', layer.name);
     $nameInput.addEventListener('keyup', () => layer.setName($nameInput.value));
 
-    new CirclePropertiesView(layers, layer, templateCopy.querySelector('.js-properties-marker')).render();
+    CirclePropertiesView(layers, layer, templateCopy.querySelector('.js-properties-marker')).render();
 
     const $select = templateCopy.querySelector('.js-select');
     $select.value = layer.getPreferredStyle();
@@ -405,72 +405,70 @@ CirclePropertiesView = function(layers, layer, $el) {
 
 // App initialization
 const MainSidebar = function(layers, $el, features) {
-  this.layers = layers;
-  this.$el = $el;
-  this.features = features; //TODO: REMOVE
-}
+  const that = new Object();
 
-MainSidebar.prototype.render = function() {
-  const template = document.querySelector('#main-sidebar');
+  that.render = function() {
+    const template = document.querySelector('#main-sidebar');
 
-  var templateCopy = document.importNode(template.content, true);
-  this.$el.innerHTML = '';
-  this.$el.appendChild(templateCopy);
-  const $addLayer = document.querySelector('.js-add-layer');
-  $addLayer.addEventListener('click', () => new AddLayer(this.layers, this.$el, this.features).render());
+    var templateCopy = document.importNode(template.content, true);
+    $el.innerHTML = '';
+    $el.appendChild(templateCopy);
+    const $addLayer = document.querySelector('.js-add-layer');
+    $addLayer.addEventListener('click', () => AddLayer(layers, $el, features).render());
 
-  this.properties = PropertiesView(layers, 'properties');
-  const propertiesLayer = layers.getLayer(layers.length() - 1);
-  this.properties.changeLayer(propertiesLayer);
-  const onLayerClick = (layer) => this.properties.changeLayer(layer);
-  const layerViewBuilder = (layer) => SelectLayerView(layer, onLayerClick);
-  ListView(layers, 'layers', layerViewBuilder).render();
+    let properties = PropertiesView(layers, 'properties');
+    const propertiesLayer = layers.getLayer(layers.length() - 1);
+    properties.changeLayer(propertiesLayer);
+    const onLayerClick = (layer) => properties.changeLayer(layer);
+    const layerViewBuilder = (layer) => SelectLayerView(layer, onLayerClick);
+    ListView(layers, 'layers', layerViewBuilder).render();
+  }
+  return that;
 }
 
 AddLayer = function(layers, $el, features) {
-  this.layers = layers;
-  this.$el = $el;
-  this.features = features; //TODO: REMOVE
-  this.selectedFeatures = [];
-}
+  const that = new Object();
+  let selectedFeatures = [];
 
-AddLayer.prototype.render = function() {
-  const template = document.querySelector('#add-layer');
-  var templateCopy = document.importNode(template.content, true);
-  this.$el.innerHTML = '';
-  this.$el.appendChild(templateCopy);
+  that.render = () => {
+    const template = document.querySelector('#add-layer');
+    var templateCopy = document.importNode(template.content, true);
+    $el.innerHTML = '';
+    $el.appendChild(templateCopy);
 
-  const onToggleCallback = ($el, selectedFeature) => {
-    const selectedClass = 'item-list__item--is-selected';
-    if ($el.classList.contains(selectedClass)) {
-      const indexToRemove = this.selectedFeatures.indexOf(selectedFeature);
-      this.selectedFeatures.splice(indexToRemove, 1);
-      $el.classList.remove(selectedClass);
-    } else {
-      $el.classList.add(selectedClass);
-      this.selectedFeatures.push(selectedFeature);
-    }
+    const onToggleCallback = ($el, selectedFeature) => {
+      const selectedClass = 'item-list__item--is-selected';
+      if ($el.classList.contains(selectedClass)) {
+        const indexToRemove = selectedFeatures.indexOf(selectedFeature);
+        selectedFeatures.splice(indexToRemove, 1);
+        $el.classList.remove(selectedClass);
+      } else {
+        $el.classList.add(selectedClass);
+        selectedFeatures.push(selectedFeature);
+      }
 
-    const selectFeatureViewBuilder = (feature) => SelectFeatureView(feature, () => {}, true);
-    ListView(this.selectedFeatures, 'new-layer', selectFeatureViewBuilder).render();
-  };
-  const selectFeatureViewBuilder = (feature) => SelectFeatureView(feature, onToggleCallback);
-  ListView(this.features, 'features', selectFeatureViewBuilder).render();
+      const selectFeatureViewBuilder = (feature) => SelectFeatureView(feature, () => {}, true);
+      ListView(selectedFeatures, 'new-layer', selectFeatureViewBuilder).render();
+    };
+    const selectFeatureViewBuilder = (feature) => SelectFeatureView(feature, onToggleCallback);
+    ListView(features, 'features', selectFeatureViewBuilder).render();
 
-  const $cancel = document.querySelector('.js-cancel');
-  $cancel.addEventListener('click', () => new MainSidebar(this.layers, this.$el, this.features).render());
+    const $cancel = document.querySelector('.js-cancel');
+    $cancel.addEventListener('click', () => MainSidebar(layers, $el, features).render());
 
-  const $save = document.querySelector('.js-save');
-  $save.addEventListener('click', () => {
-    layers.add(Layer(this.selectedFeatures));
-    new MainSidebar(this.layers, this.$el, this.features).render();
-  });
+    const $save = document.querySelector('.js-save');
+    $save.addEventListener('click', () => {
+      layers.add(Layer(selectedFeatures));
+      MainSidebar(layers, $el, features).render();
+    });
+  }
+  return that;
 }
 
 const start = (geojson) => {
   const features = geojson.features.map((feature) => Feature(feature));
 
-  new AddLayer(layers, document.querySelector('.js-sidebar'), features).render();
+  AddLayer(layers, document.querySelector('.js-sidebar'), features).render();
 }
 
 const layers = Layers();
