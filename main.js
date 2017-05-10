@@ -20,49 +20,49 @@ const IMAGES = ['home', 'camera', 'plane', 'briefcase'].map((filename) => `png/$
 const Publisher = function() {
   let handlers = [];
 
-  const that = new Object();
-  that.subscribe = (observer) => handlers.push(observer);
-  that.notifySuscriptors = (...args) => handlers.map((handler) => handler.notify(...args))
+  const self = new Object();
+  self.subscribe = (observer) => handlers.push(observer);
+  self.notifySuscriptors = (...args) => handlers.map((handler) => handler.notify(...args))
 
-  return that;
+  return self;
 }
 
 // Layers
 const Layers = function() {
   const layers = [];
 
-  const that = Object.create(new Publisher());
+  const self = Object.create(new Publisher());
 
-  that.add = (layer) => {
+  self.add = (layer) => {
     layers.push(layer);
-    layer.subscribe(that);
-    that.notifySuscriptors('layer.added', layer);
+    layer.subscribe(self);
+    self.notifySuscriptors('layer.added', layer);
   };
 
-  that.notify = (event, subject) => {
-    that.notifySuscriptors(event, subject)
+  self.notify = (event, subject) => {
+    self.notifySuscriptors(event, subject)
   }
 
-  that.map = (callback) => layers.map(callback);
-  that.length = () => layers.length;
-  that.getLayer = (index) => layers[index];
+  self.map = (callback) => layers.map(callback);
+  self.length = () => layers.length;
+  self.getLayer = (index) => layers[index];
 
-  return that;
+  return self;
 };
 
 // Feature
 const Feature = function(attrs) {
-  const that = new Object();
+  const self = new Object();
 
-  that.toGeoJSON = () => attrs;
-  that.getName = () => attrs.properties.name;
+  self.toGeoJSON = () => attrs;
+  self.getName = () => attrs.properties.name;
 
-  return that;
+  return self;
 }
 
 // Layer
 const Layer = function(features) {
-  const that = Object.create(new Publisher());
+  const self = Object.create(new Publisher());
 
   let preferredStyle = 'circle';
   const style = {
@@ -75,35 +75,35 @@ const Layer = function(features) {
     }
   };
 
-  that.name = features.map((feature) => feature.getName()).slice(0,4).join(', ')  + (features.length > 4 ? ',...' : '');
+  self.name = features.map((feature) => feature.getName()).slice(0,4).join(', ')  + (features.length > 4 ? ',...' : '');
 
-  that.setStyle = function(key, value) {
+  self.setStyle = function(key, value) {
     style[preferredStyle][key] = value;
-    that.notifySuscriptors('layer.restyled', that);
+    self.notifySuscriptors('layer.restyled', self);
   }
 
-  that.setName = (name) => {
-    that.name = name;
-    that.notifySuscriptors('layer.renamed', that);
+  self.setName = (name) => {
+    self.name = name;
+    self.notifySuscriptors('layer.renamed', self);
   }
 
-  that.getStyle = () => style[preferredStyle];
+  self.getStyle = () => style[preferredStyle];
 
-  that.toGeoJSON = function() {
+  self.toGeoJSON = function() {
     return {
       type: 'FeatureCollection',
       features: features.map((feature) => feature.toGeoJSON())
     };
   }
 
-  that.setPreferredStyle = function(style) {
+  self.setPreferredStyle = function(style) {
     preferredStyle = style;
-    that.notifySuscriptors('layer.restyled', that);
+    self.notifySuscriptors('layer.restyled', self);
   }
 
-  that.getPreferredStyle = () => preferredStyle;
+  self.getPreferredStyle = () => preferredStyle;
 
-  return that;
+  return self;
 }
 
 // View object
@@ -112,13 +112,13 @@ const Layer = function(features) {
 const Map = function(layers, id) {
   this.layers = layers;
 
-  const that = new Object();
-  layers.subscribe(that);
+  const self = new Object();
+  layers.subscribe(self);
 
-  that.notify = function(event, layer) {
+  self.notify = function(event, layer) {
     const events = {
-      'layer.added': () => that.addLayer(layer),
-      'layer.restyled': () => that.resetLayer(layer),
+      'layer.added': () => self.addLayer(layer),
+      'layer.restyled': () => self.resetLayer(layer),
     }
 
     if (event in events) {
@@ -126,12 +126,12 @@ const Map = function(layers, id) {
     }
   }
 
-  that.resetLayer = function(layer) {
-    that.map.eachLayer((layer) => layer !== that.baseLayer ? that.map.removeLayer(layer) : '');
-    layers.map((layer) => that.addLayer(layer));
+  self.resetLayer = function(layer) {
+    self.map.eachLayer((layer) => layer !== self.baseLayer ? self.map.removeLayer(layer) : '');
+    layers.map((layer) => self.addLayer(layer));
   }
 
-  that.icons = function() {
+  self.icons = function() {
     return IMAGES.reduce((dict, filename) => {
       dict[filename] = L.icon({
         iconUrl: filename,
@@ -145,15 +145,15 @@ const Map = function(layers, id) {
     }, {});
   }
 
-  that.render = function(domID) {
-    that.map = L.map(domID).setView([5,0], 2);
-    that.baseLayer = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+  self.render = function(domID) {
+    self.map = L.map(domID).setView([5,0], 2);
+    self.baseLayer = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
         id: id,
         accessToken: MAPBOX_ACCESS_TOKEN
-        }).addTo(that.map);
+        }).addTo(self.map);
   };
 
-  that.prepareFeature = function(latlng, layer) {
+  self.prepareFeature = function(latlng, layer) {
     const style = layer.getStyle();
     if (style.color) {
       const options = Object.assign({
@@ -164,30 +164,30 @@ const Map = function(layers, id) {
       }, layer.getStyle());
       return L.circleMarker(latlng, options);
     } else {
-      return L.marker(latlng, { icon: that.icons()[style.image] });
+      return L.marker(latlng, { icon: self.icons()[style.image] });
     }
   }
 
-  that.addLayer = function(layer) {
+  self.addLayer = function(layer) {
     L.geoJSON(layer.toGeoJSON(), {
-      pointToLayer: (feature, latlng) => that.prepareFeature(latlng, layer)
-    }).addTo(that.map);
+      pointToLayer: (feature, latlng) => self.prepareFeature(latlng, layer)
+    }).addTo(self.map);
   };
 
-  return that;
+  return self;
 };
 
 
 // SelectedLayerView
 const SelectLayerView = function(layer, onClickCallback) {
-  const that = new Object();
-  layer.subscribe(that);
+  const self = new Object();
+  layer.subscribe(self);
 
-  that.notify = (event, subject) => {
-    that.render();
+  self.notify = (event, subject) => {
+    self.render();
   }
 
-  that.render = () => {
+  self.render = () => {
     const li = document.createElement('li');
     li.classList = 'item-list__item';
     const textNode = document.createTextNode(layer.name);
@@ -196,14 +196,14 @@ const SelectLayerView = function(layer, onClickCallback) {
     return li;
   }
 
-  return that;
+  return self;
 }
 
 // SelectedFeatureView
 const SelectFeatureView = function(feature, onToggleCallback, selected) {
-  const that = new Object();
+  const self = new Object();
 
-  that.render = () => {
+  self.render = () => {
     const li = document.createElement('li');
     li.classList = 'item-list__item';
     if (selected) {
@@ -215,17 +215,17 @@ const SelectFeatureView = function(feature, onToggleCallback, selected) {
     return li;
   }
 
-  return that;
+  return self;
 }
 
 // ListView
 const ListView = function(items, domId, itemBuilder) {
-  const that = new Object();
-  items.subscribe && items.subscribe(that);
+  const self = new Object();
+  items.subscribe && items.subscribe(self);
 
-  that.notify = (event, subject) => that.render();
+  self.notify = (event, subject) => self.render();
 
-  that.render = () => {
+  self.render = () => {
     const renderedPoints = items.map((item) => itemBuilder(item).render());
     const ul = document.createElement('ul');
     ul.classList = 'item-list';
@@ -239,14 +239,14 @@ const ListView = function(items, domId, itemBuilder) {
     }
   }
 
-  return that;
+  return self;
 }
 
 // PickerView
 const PickerView = function(layer, $el, style, options, optionBuilder) {
-  const that = new Object();
+  const self = new Object();
 
-  that.render = () => {
+  self.render = () => {
     const template = document.querySelector('#color-picker');
     const templateCopy = document.importNode(template.content, true);
     const $root = templateCopy.querySelector('.js-color-picker');
@@ -269,13 +269,13 @@ const PickerView = function(layer, $el, style, options, optionBuilder) {
     $el.innerHTML = '';
     $el.appendChild(templateCopy);
   }
-  return that;
+  return self;
 }
 
 NumberSelectorView = function(layer, $el, style, value, maxSize, step = 1) {
-  const that = new Object();
+  const self = new Object();
 
-  that.render = () => {
+  self.render = () => {
     const template = document.querySelector('#number-selector');
     var templateCopy = document.importNode(template.content, true);
     const $input = templateCopy.querySelector('.js-input-number');
@@ -290,27 +290,27 @@ NumberSelectorView = function(layer, $el, style, value, maxSize, step = 1) {
     $el.innerHTML = '';
     $el.appendChild(templateCopy);
   }
-  return that;
+  return self;
 }
 
 // PropertiesView
 const PropertiesView = function(layers, domId) {
-  const that = new Object();
+  const self = new Object();
   let layer;
-  layers.subscribe(that);
+  layers.subscribe(self);
 
-  that.changeLayer = function(newLayer) {
+  self.changeLayer = function(newLayer) {
     layer = newLayer;
-    that.render();
+    self.render();
   }
 
-  that.notify = function(event, layer) {
+  self.notify = function(event, layer) {
     if (event === 'layer.added') {
       //this.changeLayer(layer);
     }
   }
 
-  that.render = function() {
+  self.render = function() {
     if (!layer) {
       return;
     }
@@ -345,7 +345,7 @@ const PropertiesView = function(layers, domId) {
     $select.addEventListener('change', setProperties);
     setProperties(layer.getPreferredStyle());
   }
-  return that;
+  return self;
 }
 
 const ColorToPickBuilder = (layer, color, style) => {
@@ -365,9 +365,9 @@ const ImageToPickBuilder = (layer, color, style) => {
 }
 
 ImagePropertiesView = function(layers, layer, $el) {
-  const that = new Object();
+  const self = new Object();
 
-  that.render = function() {
+  self.render = function() {
     const template = document.querySelector('#image-marker');
     var templateCopy = document.importNode(template.content, true);
 
@@ -377,13 +377,13 @@ ImagePropertiesView = function(layers, layer, $el) {
     $el.appendChild(templateCopy);
   }
 
-  return that;
+  return self;
 }
 
 CirclePropertiesView = function(layers, layer, $el) {
-  const that = new Object();
+  const self = new Object();
 
-  that.render = function() {
+  self.render = function() {
     if (!layer) {
       return;
     }
@@ -400,14 +400,14 @@ CirclePropertiesView = function(layers, layer, $el) {
     $el.innerHTML = '';
     $el.appendChild(templateCopy);
   }
-  return that;
+  return self;
 }
 
 // App initialization
 const MainSidebar = function(layers, $el, features) {
-  const that = new Object();
+  const self = new Object();
 
-  that.render = function() {
+  self.render = function() {
     const template = document.querySelector('#main-sidebar');
 
     var templateCopy = document.importNode(template.content, true);
@@ -423,14 +423,14 @@ const MainSidebar = function(layers, $el, features) {
     const layerViewBuilder = (layer) => SelectLayerView(layer, onLayerClick);
     ListView(layers, 'layers', layerViewBuilder).render();
   }
-  return that;
+  return self;
 }
 
 AddLayer = function(layers, $el, features) {
-  const that = new Object();
+  const self = new Object();
   let selectedFeatures = [];
 
-  that.render = () => {
+  self.render = () => {
     const template = document.querySelector('#add-layer');
     var templateCopy = document.importNode(template.content, true);
     $el.innerHTML = '';
@@ -462,7 +462,7 @@ AddLayer = function(layers, $el, features) {
       MainSidebar(layers, $el, features).render();
     });
   }
-  return that;
+  return self;
 }
 
 const start = (geojson) => {
