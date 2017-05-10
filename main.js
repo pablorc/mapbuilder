@@ -218,6 +218,7 @@ const SelectLayerView = (layer, onClickCallback) => {
   }
 
   self.render = () => {
+    // TODO
     const li = document.createElement('li');
     li.classList = 'item-list__item';
     const textNode = document.createTextNode(layer.getName());
@@ -239,6 +240,7 @@ const SelectFeatureView = function(feature, onToggleCallback, selected) {
   const self = new Object();
 
   self.render = () => {
+    // TODO
     const li = document.createElement('li');
     li.classList = 'item-list__item';
     if (selected) {
@@ -266,6 +268,7 @@ const ListView = function(items, domId, itemBuilder) {
   self.notify = (event, subject) => self.render();
 
   self.render = () => {
+    // TODO
     const renderedPoints = items.map((item) => itemBuilder(item).render());
     const ul = document.createElement('ul');
     ul.classList = 'item-list';
@@ -292,7 +295,7 @@ const ListView = function(items, domId, itemBuilder) {
  * @param optionBuilder - Function that creates each concrete option
  */
 const PickerView = function(layer, $el, style, options, optionBuilder) {
-  const self = new Object();
+  const self = new BaseView();
   const isSelectedClass = '--is-selected';
 
   self.onClick = (selectedValue, event) => {
@@ -303,9 +306,8 @@ const PickerView = function(layer, $el, style, options, optionBuilder) {
   }
 
   self.render = () => {
-    const template = document.querySelector('#color-picker');
-    const templateCopy = document.importNode(template.content, true);
-    const $root = templateCopy.querySelector('.js-color-picker');
+    self.renderFromTemplate('#color-picker', $el);
+    const $root = document.querySelector('.js-color-picker');
 
     const colorOptions = options.map((color) => {
       const option = optionBuilder(layer, color);
@@ -316,9 +318,6 @@ const PickerView = function(layer, $el, style, options, optionBuilder) {
       $root.appendChild(option);
       option.addEventListener('click', (event) => self.onClick(color, event));
     });
-
-    $el.innerHTML = '';
-    $el.appendChild(templateCopy);
   }
   return self;
 }
@@ -432,11 +431,11 @@ ImagePropertiesView = function(layer, $el) {
   self.render = () => {
     const template = document.querySelector('#image-marker');
     const templateCopy = document.importNode(template.content, true);
-
-    PickerView(layer, templateCopy.querySelector('.js-image-picker'), 'image', IMAGES, ImageToPickBuilder).render();
-
     $el.innerHTML = '';
     $el.appendChild(templateCopy);
+
+    PickerView(layer, document.querySelector('.js-image-picker'), 'image', IMAGES, ImageToPickBuilder).render();
+
   }
 
   return self;
@@ -448,7 +447,7 @@ ImagePropertiesView = function(layer, $el) {
  * @param $el - The DOM element where it should be rendered
  */
 CirclePropertiesView = function(layer, $el) {
-  const self = new Object();
+  const self = new BaseView();
 
   /* Function to build each color to render inside the Picker element */
   const ColorToPickBuilder = (layer, color, style) => {
@@ -464,22 +463,31 @@ CirclePropertiesView = function(layer, $el) {
       return;
     }
 
-    const template = document.querySelector('#circle-marker');
-    const templateCopy = document.importNode(template.content, true);
+    self.renderFromTemplate('#circle-marker', $el);
 
-    PickerView(layer, templateCopy.querySelector('.js-stroke-color-picker'), 'color', COLORS, ColorToPickBuilder).render();
-    PickerView(layer, templateCopy.querySelector('.js-fill-color-picker'), 'fillColor', COLORS, ColorToPickBuilder).render();
-    NumberSelectorView(layer, templateCopy.querySelector('.js-radius'), 'radius', 50).render();
-    NumberSelectorView(layer, templateCopy.querySelector('.js-weight'), 'weight', 20).render();
-    NumberSelectorView(layer, templateCopy.querySelector('.js-stroke-opacity'), 'opacity', 1, 0.1).render();
-    NumberSelectorView(layer, templateCopy.querySelector('.js-fill-opacity'), 'fillOpacity', 1, 0.1).render();
+    PickerView(layer, document.querySelector('.js-stroke-color-picker'), 'color', COLORS, ColorToPickBuilder).render();
+    PickerView(layer, document.querySelector('.js-fill-color-picker'), 'fillColor', COLORS, ColorToPickBuilder).render();
+    NumberSelectorView(layer, document.querySelector('.js-radius'), 'radius', 50).render();
+    NumberSelectorView(layer, document.querySelector('.js-weight'), 'weight', 20).render();
+    NumberSelectorView(layer, document.querySelector('.js-stroke-opacity'), 'opacity', 1, 0.1).render();
+    NumberSelectorView(layer, document.querySelector('.js-fill-opacity'), 'fillOpacity', 1, 0.1).render();
 
-    $el.innerHTML = '';
-    $el.appendChild(templateCopy);
   }
   return self;
 }
 
+const BaseView = function() {
+  const self = new Object();
+
+  self.renderFromTemplate = (templateId, root) => {
+    const template = document.querySelector(templateId);
+    const templateCopy = document.importNode(template.content, true);
+    root.innerHTML = '';
+    root.appendChild(templateCopy);
+  }
+
+  return self;
+}
 /*
  * Represents a Sidebar where layers can be modified by a PropertyView
  * @param layers - The list of layers
@@ -487,14 +495,11 @@ CirclePropertiesView = function(layer, $el) {
  * @param features - The complete list of features that can be used
  */
 const MainSidebar = function(layers, $el, features) {
-  const self = new Object();
+  const self = new BaseView();
 
   self.render = () => {
-    const template = document.querySelector('#main-sidebar');
+    const root = self.renderFromTemplate('#main-sidebar', $el);
 
-    const templateCopy = document.importNode(template.content, true);
-    $el.innerHTML = '';
-    $el.appendChild(templateCopy);
     const $addLayer = document.querySelector('.js-add-layer');
     $addLayer.addEventListener('click', () => AddLayer(layers, $el, features).render());
 
@@ -515,7 +520,7 @@ const MainSidebar = function(layers, $el, features) {
  * @param features - The complete list of features that can be used
  */
 AddLayer = function(layers, $el, features) {
-  const self = new Object();
+  const self = new BaseView();
   const selectedClass = 'item-list__item--is-selected';
   let selectedFeatures = [];
 
@@ -538,10 +543,7 @@ AddLayer = function(layers, $el, features) {
   };
 
   self.render = () => {
-    const template = document.querySelector('#add-layer');
-    const templateCopy = document.importNode(template.content, true);
-    $el.innerHTML = '';
-    $el.appendChild(templateCopy);
+    self.renderFromTemplate('#add-layer', $el);
 
     const selectFeatureViewBuilder = (feature) => SelectFeatureView(feature, (...args) => self.onToggleCallback(...args));
     ListView(features, 'features', selectFeatureViewBuilder).render();
