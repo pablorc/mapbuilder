@@ -62,16 +62,21 @@ Feature.prototype.toGeoJSON = function() {
 // Layer
 const Layer = function(features) {
   const that = Object.create(new Publisher());
-
-  that.style = {
-    fillColor: COLORS[0],
-    color: COLORS[1],
+  let preferredStyle = 'circle';
+  const style = {
+    circle: {
+      fillColor: COLORS[0],
+      color: COLORS[1]
+    },
+    image: {
+      image: IMAGES[0]
+    }
   };
 
   that.name = features.map((feature) => feature.attrs.properties.name).slice(0,4).join(', ')  + (features.length > 4 ? ',...' : '');
 
   that.setStyle = function(key, value) {
-    that.style[key] = value;
+    style[preferredStyle][key] = value;
     that.notifySuscriptors('layer.restyled', that);
   }
 
@@ -80,11 +85,18 @@ const Layer = function(features) {
     that.notifySuscriptors('layer.renamed', that);
   }
 
+  that.getStyle = () => style[preferredStyle];
+
   that.toGeoJSON = function() {
     return {
       type: 'FeatureCollection',
       features: features.map((feature) => feature.toGeoJSON())
     };
+  }
+
+  that.setPreferredStyle = function(style) {
+    preferredStyle = style;
+    that.notifySuscriptors('layer.restyled', that);
   }
 
   return that;
@@ -139,16 +151,25 @@ Map.prototype.render = function(domID) {
   L.marker([50.505, 30.57], {icon: this.icons()['png/plane.png']}).addTo(this.map);
 };
 
-Map.prototype.addLayer = function(layer) {
-  const markerOptions = Object.assign({
-    radius: 8,
-    weight: 1,
-    opacity: 1,
-    fillOpacity: 0.8
-  }, layer.style);
+Map.prototype.prepareFeature = function(latlng, layer) {
+  const style = layer.getStyle();
+  if (style.color) {
+    const options = Object.assign({
+      radius: 8,
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.8
+    }, layer.getStyle());
+    console.log(options);
+    return L.circleMarker(latlng, options);
+  } else {
+    return L.marker(latlng, { icon: this.icons()[style.image] });
+  }
+}
 
+Map.prototype.addLayer = function(layer) {
 	L.geoJSON(layer.toGeoJSON(), {
-		pointToLayer: (feature, latlng) => L.circleMarker(latlng, markerOptions)
+		pointToLayer: (feature, latlng) => this.prepareFeature(latlng, layer)
 	}).addTo(this.map);
 };
 
@@ -239,11 +260,13 @@ ColorPickerView.prototype.render = function() {
   const colorTemplate = document.querySelector('#color-picker-option');
   const isSelectedClass = 'color-picker__option__color--is-selected';
 
+    console.log(this.layer.getStyle());
   const colorOptions = COLORS.map((color) => {
     const colorOptionCopy = document.importNode(colorTemplate.content, true);
     const option = colorOptionCopy.querySelector('.js-color');
     option.style.backgroundColor = color;
-    if (color === this.layer.style[this.style]) {
+    if (color === this.layer.getStyle()[this.style]) {
+      console.log(':D');
       option.classList.add(isSelectedClass);
     }
     option.addEventListener('click', (event) => {
@@ -267,6 +290,7 @@ ImageSelector = function(layer, $el, style) {
 }
 
 ImageSelector.prototype.render = function() {
+  return;
   const template = document.querySelector('#image-picker');
   const templateCopy = document.importNode(template.content, true);
   const $root = templateCopy.querySelector('.js-image-picker');
@@ -351,6 +375,7 @@ PropertiesView.prototype.render = function() {
 
   const $select = templateCopy.querySelector('.js-select');
   $select.addEventListener('change', () => {
+    this.layer.setPreferredStyle($select.value);
     if ($select.value === 'image') {
       new ImagePropertiesView(this.layers, this.layer, document.querySelector('.js-properties-marker')).render();
     } else {
