@@ -86,7 +86,7 @@ body {
   width: 25px;
 }
 
-.color-picker__option__color--is-selected {
+.color-picker__option__color.--is-selected {
   border-color: #333;
 }
 
@@ -228,4 +228,14 @@ body {
 .input {
   box-sizing: border-box;
   width: 100%;
+}
+
+.image-picker__option {
+  border:1px solid transparent;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.image-picker__option.--is-selected {
+  border-color: #333;
 }

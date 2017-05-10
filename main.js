@@ -247,38 +247,52 @@ ListView.prototype.render = function() {
 }
 
 // ColorPickerView
-const ColorPickerView = function(layer, $el, style) {
+const ColorPickerView = function(layer, $el, style, options, buildOption) {
   this.layer = layer;
   this.$el = $el;
   this.style = style;
+  this.options = options;
+  this.buildOption = buildOption;
 }
 
 ColorPickerView.prototype.render = function() {
   const template = document.querySelector('#color-picker');
   const templateCopy = document.importNode(template.content, true);
   const $root = templateCopy.querySelector('.js-color-picker');
-  const colorTemplate = document.querySelector('#color-picker-option');
-  const isSelectedClass = 'color-picker__option__color--is-selected';
+  const isSelectedClass = '--is-selected';
 
-  const colorOptions = COLORS.map((color) => {
-    const colorOptionCopy = document.importNode(colorTemplate.content, true);
-    const option = colorOptionCopy.querySelector('.js-color');
-    option.style.backgroundColor = color;
+  const colorOptions = this.options.map((color) => {
+    const option = this.buildOption(this.layer, color);
     if (color === this.layer.getStyle()[this.style]) {
       option.classList.add(isSelectedClass);
     }
+    $root.appendChild(option);
     option.addEventListener('click', (event) => {
-      const nodes = this.$el.querySelectorAll('.js-color');
+      const nodes = this.$el.querySelectorAll('.js-option');
       [].forEach.call(nodes, (color) => color.classList.remove(isSelectedClass));
       event.target.classList.add(isSelectedClass);
       this.layer.setStyle(this.style, color);
     });
-    $root.appendChild(colorOptionCopy);
   });
-
 
   this.$el.innerHTML = '';
   this.$el.appendChild(templateCopy);
+}
+
+const f = (layer, color, style) => {
+  const colorTemplate = document.querySelector('#color-picker-option');
+    const colorOptionCopy = document.importNode(colorTemplate.content, true);
+    const option = colorOptionCopy.querySelector('.js-option');
+    option.style.backgroundColor = color;
+    return option;
+}
+
+const f2 = (layer, color, style) => {
+  const colorTemplate = document.querySelector('#image-picker-option');
+    const colorOptionCopy = document.importNode(colorTemplate.content, true);
+    const option = colorOptionCopy.querySelector('.js-option');
+    option.setAttribute('src', color);
+    return option;
 }
 
 ImageSelector = function(layer, $el, style) {
@@ -400,7 +414,7 @@ ImagePropertiesView.prototype.render = function() {
 
   const root = this.domId;
 
-  new ImageSelector(this.layer, templateCopy.querySelector('.js-image-picker'), 'imageUrl').render();
+  new ColorPickerView(this.layer, templateCopy.querySelector('.js-image-picker'), 'image', IMAGES, f2).render();
 
   root.innerHTML = '';
   root.appendChild(templateCopy);
@@ -422,8 +436,8 @@ CirclePropertiesView.prototype.render = function() {
 
   const root = this.domId;
 
-  new ColorPickerView(this.layer, templateCopy.querySelector('.js-stroke-color-picker'), 'color').render();
-  new ColorPickerView(this.layer, templateCopy.querySelector('.js-fill-color-picker'), 'fillColor').render();
+  new ColorPickerView(this.layer, templateCopy.querySelector('.js-stroke-color-picker'), 'color', COLORS, f).render();
+  new ColorPickerView(this.layer, templateCopy.querySelector('.js-fill-color-picker'), 'fillColor', COLORS, f).render();
   new NumberSelectorView(this.layer, templateCopy.querySelector('.js-radius'), 'radius', 8, 50).render();
   new NumberSelectorView(this.layer, templateCopy.querySelector('.js-weight'), 'weight', 1, 20).render();
   new NumberSelectorView(this.layer, templateCopy.querySelector('.js-opacity'), 'opacity', 0, 1, 0.1).render();
