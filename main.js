@@ -110,68 +110,72 @@ const Layer = function(features) {
 // Map
 const Map = function(layers, id) {
   this.layers = layers;
-  this.id = id;
-  layers.subscribe(this);
-};
 
-Map.prototype.notify = function(event, layer) {
-  const events = {
-    'layer.added': () => this.addLayer(layer),
-    'layer.restyled': () => this.resetLayer(layer),
+  const that = new Object();
+  layers.subscribe(that);
+
+  that.notify = function(event, layer) {
+    const events = {
+      'layer.added': () => that.addLayer(layer),
+      'layer.restyled': () => that.resetLayer(layer),
+    }
+
+    if (event in events) {
+      events[event]();
+    }
   }
 
-  if (event in events) {
-    events[event]();
+  that.resetLayer = function(layer) {
+    that.map.eachLayer((layer) => layer !== that.baseLayer ? that.map.removeLayer(layer) : '');
+    layers.map((layer) => that.addLayer(layer));
   }
-}
 
-Map.prototype.resetLayer = function(layer) {
-  this.map.eachLayer((layer) => layer !== this.baseLayer ? this.map.removeLayer(layer) : '');
-  this.layers.map((layer) => this.addLayer(layer));
-}
+  that.icons = function() {
+    return IMAGES.reduce((dict, filename) => {
+      dict[filename] = L.icon({
+        iconUrl: filename,
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
+        popupAnchor: [-3, -76],
+        shadowSize: [0, 0],
+        shadowAnchor: [0, 0]
+      });
+      return dict;
+    }, {});
+  }
 
-Map.prototype.icons = function() {
-  return IMAGES.reduce((dict, filename) => {
-    dict[filename] = L.icon({
-      iconUrl: filename,
-      iconSize: [16, 16],
-      iconAnchor: [8, 8],
-      popupAnchor: [-3, -76],
-      shadowSize: [0, 0],
-      shadowAnchor: [0, 0]
-    });
-    return dict;
-  }, {});
-}
+  that.render = function(domID) {
+    that.map = L.map(domID).setView([5,0], 2);
+    that.baseLayer = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+        id: id,
+        accessToken: MAPBOX_ACCESS_TOKEN
+        }).addTo(that.map);
+  };
 
-Map.prototype.render = function(domID) {
-  this.map = L.map(domID).setView([5,0], 2);
-  this.baseLayer = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-      id: this.id,
-      accessToken: MAPBOX_ACCESS_TOKEN
-      }).addTo(this.map);
+  that.prepareFeature = function(latlng, layer) {
+    const style = layer.getStyle();
+    if (style.color) {
+      const options = Object.assign({
+        radius: 8,
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.8
+      }, layer.getStyle());
+      return L.circleMarker(latlng, options);
+    } else {
+      return L.marker(latlng, { icon: that.icons()[style.image] });
+    }
+  }
+
+  that.addLayer = function(layer) {
+    L.geoJSON(layer.toGeoJSON(), {
+      pointToLayer: (feature, latlng) => that.prepareFeature(latlng, layer)
+    }).addTo(that.map);
+  };
+
+  return that;
 };
 
-Map.prototype.prepareFeature = function(latlng, layer) {
-  const style = layer.getStyle();
-  if (style.color) {
-    const options = Object.assign({
-      radius: 8,
-      weight: 1,
-      opacity: 1,
-      fillOpacity: 0.8
-    }, layer.getStyle());
-    return L.circleMarker(latlng, options);
-  } else {
-    return L.marker(latlng, { icon: this.icons()[style.image] });
-  }
-}
-
-Map.prototype.addLayer = function(layer) {
-	L.geoJSON(layer.toGeoJSON(), {
-		pointToLayer: (feature, latlng) => this.prepareFeature(latlng, layer)
-	}).addTo(this.map);
-};
 
 // SelectedLayerView
 const SelectLayerView = function(layer, onClickCallback) {
@@ -517,7 +521,7 @@ const start = (geojson) => {
 }
 
 const layers = Layers();
-const map = new Map(layers, 'mapbox.streets');
+const map = Map(layers, 'mapbox.streets');
 map.render(MAP_DOM_ID);
 
 self.fetch(GEOJSON_URL)
