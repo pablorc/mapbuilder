@@ -18,7 +18,9 @@ const IMAGES = ['home', 'camera', 'plane', 'briefcase'].map((filename) => `png/$
 
 //// Model objects
 
-// Publisher TODO
+/*
+ * Implementation of a Observer pattern
+ */
 const Publisher = function() {
   let handlers = [];
 
@@ -29,7 +31,11 @@ const Publisher = function() {
     return self;
 }
 
-// Layers TODO
+/*
+ * Represent a collection of layers.
+ *
+ * Notify layers added to it with a 'layer.added' event
+ */
 const Layers = function() {
   const layers = [];
 
@@ -52,7 +58,10 @@ const Layers = function() {
   return self;
 };
 
-// Feature TODO
+/*
+ * Represents a feature
+ * @param attrs Info in geoJSON format
+ */
 const Feature = function(attrs) {
   const self = new Object();
 
@@ -62,7 +71,10 @@ const Feature = function(attrs) {
   return self;
 }
 
-// Layer TODO
+/*
+ * Represents a layer
+ * @param features A list of features
+ */
 const Layer = function(features) {
   const self = Object.create(new Publisher());
   let name;
@@ -128,8 +140,8 @@ const Layer = function(features) {
 ///// View objects
 
 /* Represents a Map
- * @param layers The layers array to render
- * @param id The Mapbox ID to print the tiles
+ * @param layers - The layers array to render
+ * @param id - The Mapbox ID to print the tiles
  */
 const Map = function(layers, id) {
   let map;
@@ -202,8 +214,8 @@ const Map = function(layers, id) {
 
 /*
  * Represents a layer. Made to be used inside a ListView
- * @param layer The layer itself
- * @param onClickCallback Callback to execute on click
+ * @param layer - The layer itself
+ * @param onClickCallback - Callback to execute on click
  */
 const SelectLayerView = (layer, onClickCallback) => {
   const self = new Object();
@@ -227,9 +239,9 @@ const SelectLayerView = (layer, onClickCallback) => {
 
 /*
  * Represents a feature. Made to be used inside a ListView
- * @param feature The feature itself
- * @param onToggleCallback Callback to execute on click
- * @param selected Boolean to know if the element is selected or don't
+ * @param feature - The feature itself
+ * @param onToggleCallback - Callback to execute on click
+ * @param selected - Boolean to know if the element is selected or don't
  */
 const SelectFeatureView = function(feature, onToggleCallback, selected) {
   const self = new Object();
@@ -251,15 +263,14 @@ const SelectFeatureView = function(feature, onToggleCallback, selected) {
 
 /*
  * Represents a component that list elements
- * @params items The items to list
- * @params domId the DOM element's ID where the component should be rendered
- * @params itemBuilder A function that creates each item
+ * @params items - The items to list
+ * @params domId - the DOM element's ID where the component should be rendered
+ * @params itemBuilder - A function that creates each item
  */
 const ListView = function(items, domId, itemBuilder) {
   const self = new Object();
   items.subscribe && items.subscribe(self);
 
-  /* To listen to events */
   self.notify = (event, subject) => self.render();
 
   self.render = () => {
@@ -281,11 +292,11 @@ const ListView = function(items, domId, itemBuilder) {
 
 /*
  * Represents a component to pick an option from a list of options
- * @param layer The layer being modified
- * @param $el The DOM element where the component should be rendered
- * @param style The name of the style being modified
- * @param options The list of values the style can have
- * @param optionBuilder Function that creates each concrete option
+ * @param layer - The layer being modified
+ * @param $el - The DOM element where the component should be rendered
+ * @param style - The name of the style being modified
+ * @param options - The list of values the style can have
+ * @param optionBuilder - Function that creates each concrete option
  */
 const PickerView = function(layer, $el, style, options, optionBuilder) {
   const self = new Object();
@@ -321,11 +332,11 @@ const PickerView = function(layer, $el, style, options, optionBuilder) {
 
 /*
  * Represents a component to select a number inside a range
- * @param layer The layer being modified
- * @param $el The DOM element where the component should be rendered
- * @param style The name of the style being modified
- * @param maxSize Upper limit for the value selected
- * @param step Value for the step attribute @ HTML. 1 by default
+ * @param layer - The layer being modified
+ * @param $el - The DOM element where the component should be rendered
+ * @param style - The name of the style being modified
+ * @param maxSize - Upper limit for the value selected
+ * @param step - Value for the step attribute @ HTML. 1 by default
  */
 NumberSelectorView = function(layer, $el, style, maxSize, step = 1) {
   const self = new Object();
@@ -350,51 +361,47 @@ NumberSelectorView = function(layer, $el, style, maxSize, step = 1) {
 
 /*
  * Represents the complete group of properties that a layer can modify
- * @param layers All the layers
- * @param domId The element's id where the component should be rendered
+ * @param layers - All the layers
+ * @param domId - The element's id where the component should be rendered
  */
 const PropertiesView = function(layers, domId) {
   const self = new Object();
   let layer;
   layers.subscribe(self);
 
-  /* Changes the layer to modify */
   self.changeLayer = (newLayer) => {
     layer = newLayer;
     self.render();
   }
 
-  /* Notify function to listen changes of the layers */
   self.notify = (event, layer) => {
     if (event === 'layer.renamed') {
-      self.updateTitle(document);
+      self.updateTitle();
     }
   }
 
   /*
    * Updates the title with the layer's name
    */
-  self.updateTitle = (dom) => dom.querySelector("#layer-on-properties").innerHTML = layer.getName();
+  self.updateTitle = () => document.querySelector("#layer-on-properties").innerHTML = layer.getName();
 
   self.render = () => {
     const template = document.querySelector('#properties-template');
-
     var templateCopy = document.importNode(template.content, true);
-
     const root = document.getElementById(domId);
+    root.innerHTML = '';
+    root.appendChild(templateCopy);
 
-    const $nameInput = templateCopy.querySelector('.js-name');
+    const $nameInput = root.querySelector('.js-name');
     $nameInput.setAttribute('value', layer.getName());
     $nameInput.addEventListener('keyup', () => layer.setName($nameInput.value));
 
-    CirclePropertiesView(layers, layer, templateCopy.querySelector('.js-properties-marker')).render();
+    CirclePropertiesView(layers, layer, root.querySelector('.js-properties-marker')).render();
 
     const $select = templateCopy.querySelector('.js-select');
     $select.value = layer.getPreferredStyle();
 
-    root.innerHTML = '';
-    root.appendChild(templateCopy);
-    self.updateTitle(document);
+    self.updateTitle();
 
     const setProperties = () => {
       layer.setPreferredStyle($select.value);
@@ -412,9 +419,9 @@ const PropertiesView = function(layers, domId) {
 
 /*
  * Represents a component where all the icon marker's properties can be modified
- * @param layers The list of layers
- * @params layer The layer to modify
- * @param $el The DOM element where it should be rendered
+ * @param layers - The list of layers
+ * @params layer - The layer to modify
+ * @param $el - The DOM element where it should be rendered
  */
 ImagePropertiesView = function(layers, layer, $el) {
   const self = new Object();
@@ -443,14 +450,14 @@ ImagePropertiesView = function(layers, layer, $el) {
 
 /*
  * Represents a component where all the circle marker's properties can be modified
- * @param layers The list of layers
- * @params layer The layer to modify
- * @param $el The DOM element where it should be rendered
+ * @param layers - The list of layers
+ * @params layer - The layer to modify
+ * @param $el - The DOM element where it should be rendered
  */
 CirclePropertiesView = function(layers, layer, $el) {
   const self = new Object();
 
-  /* Method to build each color to render inside the Picker element */
+  /* Function to build each color to render inside the Picker element */
   const ColorToPickBuilder = (layer, color, style) => {
     const colorTemplate = document.querySelector('#color-picker-option');
     const colorOptionCopy = document.importNode(colorTemplate.content, true);
@@ -482,9 +489,9 @@ CirclePropertiesView = function(layers, layer, $el) {
 
 /*
  * Represents a Sidebar where layers can be modified by a PropertyView
- * @param layers The list of layers
- * @param $el The DOM element where the sidebar should be rendered
- * @param features The complete list of features that can be used
+ * @param layers - The list of layers
+ * @param $el - The DOM element where the sidebar should be rendered
+ * @param features - The complete list of features that can be used
  */
 const MainSidebar = function(layers, $el, features) {
   const self = new Object();
@@ -510,9 +517,9 @@ const MainSidebar = function(layers, $el, features) {
 
 /*
  * Represents a sidebar component where a new layer can be created
- * @param layers The list of layers
- * @param $el The DOM element where the sidebar should be rendered
- * @param features The complete list of features that can be used
+ * @param layers - The list of layers
+ * @param $el - The DOM element where the sidebar should be rendered
+ * @param features - The complete list of features that can be used
  */
 AddLayer = function(layers, $el, features) {
   const self = new Object();
