@@ -191,7 +191,7 @@ SelectFeatureView.prototype.render = function() {
   this.li = document.createElement('li');
   this.li.classList = 'item-list__item';
   if (this.selected) {
-    this.li.classList = this.li.classList + ' item-list__item--is-selected';
+    this.li.classList.add('item-list__item--is-selected');
   }
   const textNode = document.createTextNode(this.feature.attrs.properties.name);
   this.li.appendChild(textNode);
@@ -245,7 +245,7 @@ ColorPickerView.prototype.render = function() {
     option.style.backgroundColor = color;
     if (color === this.layer.style[this.style]) {
       console.log('selected', color);
-      option.classList += ' color-picker__option__color--is-selected';
+      option.classList.add('color-picker__option__color--is-selected');
     }
     option.addEventListener('click', () => {
       this.layer.setStyle(this.style, color);
@@ -276,7 +276,7 @@ ImageSelector.prototype.render = function() {
     option.setAttribute('src',  image);
     if (image === this.layer.style[this.style]) {
       console.log('selected', image);
-      option.classList += ' image-picker__option__color--is-selected';
+      option.classList.add('image-picker__option__color--is-selected');
     }
     option.addEventListener('click', () => {
       console.log('click', image);
@@ -444,9 +444,16 @@ AddLayer.prototype.render = function() {
   this.$el.appendChild(templateCopy);
 
   const onToggleCallback = ($el, selectedFeature) => {
-    console.log($el, selectedFeature);
-    $el.classList = $el.classList + ' item-list__item--is-selected';
-    this.selectedFeatures.push(selectedFeature);
+    const selectedClass = 'item-list__item--is-selected';
+    if ($el.classList.contains(selectedClass)) {
+      const indexToRemove = this.selectedFeatures.indexOf(selectedFeature);
+      console.log(indexToRemove);
+      this.selectedFeatures.splice(indexToRemove, 1);
+      $el.classList.remove(selectedClass);
+    } else {
+      $el.classList.add(selectedClass);
+      this.selectedFeatures.push(selectedFeature);
+    }
 
     const selectFeatureViewBuilder = (feature) => new SelectFeatureView(feature, () => {}, true);
     new ListView(this.selectedFeatures, 'new-layer', selectFeatureViewBuilder).render();
