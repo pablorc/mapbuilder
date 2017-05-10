@@ -99,6 +99,8 @@ const Layer = function(features) {
     that.notifySuscriptors('layer.restyled', that);
   }
 
+  that.getPreferredStyle = () => preferredStyle;
+
   return that;
 
 }
@@ -298,7 +300,7 @@ ImageSelector.prototype.render = function() {
     const colorOptionCopy = document.importNode(colorTemplate.content, true);
     const option = colorOptionCopy.querySelector('.js-image');
     option.setAttribute('src',  image);
-    if (image === this.layer.style[this.style]) {
+    if (image === this.layer.getStyle()[this.style]) {
       option.classList.add('image-picker__option__color--is-selected');
     }
     option.addEventListener('click', () => {
@@ -372,17 +374,21 @@ PropertiesView.prototype.render = function() {
   new CirclePropertiesView(this.layers, this.layer, templateCopy.querySelector('.js-properties-marker')).render();
 
   const $select = templateCopy.querySelector('.js-select');
-  $select.addEventListener('change', () => {
+  $select.value = this.layer.getPreferredStyle();
+
+  root.innerHTML = '';
+  root.appendChild(templateCopy);
+
+  const setProperties = () => {
     this.layer.setPreferredStyle($select.value);
     if ($select.value === 'image') {
       new ImagePropertiesView(this.layers, this.layer, document.querySelector('.js-properties-marker')).render();
     } else {
       new CirclePropertiesView(this.layers, this.layer, document.querySelector('.js-properties-marker')).render();
     }
-  });
-
-  root.innerHTML = '';
-  root.appendChild(templateCopy);
+  }
+  $select.addEventListener('change', setProperties);
+  setProperties(this.layer.getPreferredStyle());
 }
 
 ImagePropertiesView = function(layers, layer, domId) {
