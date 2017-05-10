@@ -272,36 +272,6 @@ const PickerView = function(layer, $el, style, options, optionBuilder) {
   return that;
 }
 
-ImageSelector = function(layer, $el, style) {
-  this.layer = layer;
-  this.$el = $el;
-  this.style = style;
-}
-
-ImageSelector.prototype.render = function() {
-  const template = document.querySelector('#image-picker');
-  const templateCopy = document.importNode(template.content, true);
-  const $root = templateCopy.querySelector('.js-image-picker');
-  const colorTemplate = document.querySelector('#image-picker-option');
-
-  const colorOptions = IMAGES.map((image) => {
-    const colorOptionCopy = document.importNode(colorTemplate.content, true);
-    const option = colorOptionCopy.querySelector('.js-image');
-    option.setAttribute('src',  image);
-    if (image === this.layer.getStyle()[this.style]) {
-      option.classList.add('image-picker__option__color--is-selected');
-    }
-    option.addEventListener('click', () => {
-      //this.layer.setStyle(this.style, image);
-    });
-    $root.appendChild(colorOptionCopy);
-  });
-
-
-  this.$el.innerHTML = '';
-  this.$el.appendChild(templateCopy);
-}
-
 NumberSelectorView = function(layer, $el, style, value, maxSize, step) {
   this.layer = layer;
   this.$el = $el;
