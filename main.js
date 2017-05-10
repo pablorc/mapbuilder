@@ -77,7 +77,7 @@ const Layer = function(features) {
 
   self.name = features.map((feature) => feature.getName()).slice(0,4).join(', ')  + (features.length > 4 ? ',...' : '');
 
-  self.setStyle = function(key, value) {
+  self.setStyle = (key, value) => {
     style[preferredStyle][key] = value;
     self.notifySuscriptors('layer.restyled', self);
   }
@@ -89,14 +89,14 @@ const Layer = function(features) {
 
   self.getStyle = () => style[preferredStyle];
 
-  self.toGeoJSON = function() {
+  self.toGeoJSON = () => {
     return {
       type: 'FeatureCollection',
       features: features.map((feature) => feature.toGeoJSON())
     };
   }
 
-  self.setPreferredStyle = function(style) {
+  self.setPreferredStyle = (style) => {
     preferredStyle = style;
     self.notifySuscriptors('layer.restyled', self);
   }
@@ -115,7 +115,7 @@ const Map = function(layers, id) {
   const self = new Object();
   layers.subscribe(self);
 
-  self.notify = function(event, layer) {
+  self.notify = (event, layer) => {
     const events = {
       'layer.added': () => self.addLayer(layer),
       'layer.restyled': () => self.resetLayer(layer),
@@ -126,12 +126,12 @@ const Map = function(layers, id) {
     }
   }
 
-  self.resetLayer = function(layer) {
+  self.resetLayer = (layer) => {
     self.map.eachLayer((layer) => layer !== self.baseLayer ? self.map.removeLayer(layer) : '');
     layers.map((layer) => self.addLayer(layer));
   }
 
-  self.icons = function() {
+  self.icons = () => {
     return IMAGES.reduce((dict, filename) => {
       dict[filename] = L.icon({
         iconUrl: filename,
@@ -145,7 +145,7 @@ const Map = function(layers, id) {
     }, {});
   }
 
-  self.render = function(domID) {
+  self.render = (domID) => {
     self.map = L.map(domID).setView([5,0], 2);
     self.baseLayer = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
         id: id,
@@ -153,7 +153,7 @@ const Map = function(layers, id) {
         }).addTo(self.map);
   };
 
-  self.prepareFeature = function(latlng, layer) {
+  self.prepareFeature = (latlng, layer) => {
     const style = layer.getStyle();
     if (style.color) {
       const options = Object.assign({
@@ -168,7 +168,7 @@ const Map = function(layers, id) {
     }
   }
 
-  self.addLayer = function(layer) {
+  self.addLayer = (layer) => {
     L.geoJSON(layer.toGeoJSON(), {
       pointToLayer: (feature, latlng) => self.prepareFeature(latlng, layer)
     }).addTo(self.map);
@@ -179,7 +179,7 @@ const Map = function(layers, id) {
 
 
 // SelectedLayerView
-const SelectLayerView = function(layer, onClickCallback) {
+const SelectLayerView = (layer, onClickCallback) => {
   const self = new Object();
   layer.subscribe(self);
 
@@ -299,18 +299,18 @@ const PropertiesView = function(layers, domId) {
   let layer;
   layers.subscribe(self);
 
-  self.changeLayer = function(newLayer) {
+  self.changeLayer = (newLayer) => {
     layer = newLayer;
     self.render();
   }
 
-  self.notify = function(event, layer) {
+  self.notify = (event, layer) => {
     if (event === 'layer.added') {
       //this.changeLayer(layer);
     }
   }
 
-  self.render = function() {
+  self.render = () => {
     if (!layer) {
       return;
     }
@@ -367,7 +367,7 @@ const ImageToPickBuilder = (layer, color, style) => {
 ImagePropertiesView = function(layers, layer, $el) {
   const self = new Object();
 
-  self.render = function() {
+  self.render = () => {
     const template = document.querySelector('#image-marker');
     var templateCopy = document.importNode(template.content, true);
 
@@ -383,7 +383,7 @@ ImagePropertiesView = function(layers, layer, $el) {
 CirclePropertiesView = function(layers, layer, $el) {
   const self = new Object();
 
-  self.render = function() {
+  self.render = () => {
     if (!layer) {
       return;
     }
@@ -407,7 +407,7 @@ CirclePropertiesView = function(layers, layer, $el) {
 const MainSidebar = function(layers, $el, features) {
   const self = new Object();
 
-  self.render = function() {
+  self.render = () => {
     const template = document.querySelector('#main-sidebar');
 
     var templateCopy = document.importNode(template.content, true);
