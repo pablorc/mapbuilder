@@ -199,6 +199,7 @@ body {
 .properties {
   border-collapse: collapse;
   display: table;
+  table-layout: fixed;
   width: 100%;
 }
 
@@ -212,6 +213,7 @@ body {
   display: table-cell;
   font-size: 14px;
   padding: 10px;
+  width: 45px;
   vertical-align: middle;
 }
 

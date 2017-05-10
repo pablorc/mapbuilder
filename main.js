@@ -3,14 +3,14 @@ const GEOJSON_URL = 'https://xavijam.carto.com/api/v2/sql?q=SELECT%20*%20FROM%20
 const MAP_DOM_ID = 'map';
 const PREVIEW_MAP_DOM_ID = 'preview-map';
 const COLORS = [
-   '#179e99',
-   '#1dadee',
-   '#7f4196',
-   '#29dfd7',
-   '#afd634',
-   '#fecb30',
-   '#df5290',
-   '#fd7430'
+  '#179e99',
+  '#1dadee',
+  '#7f4196',
+  '#29dfd7',
+  '#afd634',
+  '#fecb30',
+  '#df5290',
+  '#fd7430'
 ];
 const IMAGES = ['home', 'camera', 'plane', 'briefcase'].map((filename) => `png/${filename}.png`);
 
@@ -24,7 +24,7 @@ const Publisher = function() {
   self.subscribe = (observer) => handlers.push(observer);
   self.notifySuscriptors = (...args) => handlers.map((handler) => handler.notify(...args))
 
-  return self;
+    return self;
 }
 
 // Layers
@@ -77,7 +77,10 @@ const Layer = function(features) {
   const style = {
     circle: {
       fillColor: COLORS[0],
-      color: COLORS[1]
+      color: COLORS[1],
+      opacity: 1,
+      fillOpacity: 1,
+      weight: 1
     },
     image: {
       image: IMAGES[0]
@@ -260,25 +263,28 @@ const ListView = function(items, domId, itemBuilder) {
 // PickerView
 const PickerView = function(layer, $el, style, options, optionBuilder) {
   const self = new Object();
+  const isSelectedClass = '--is-selected';
+
+  self.onClick = (selectedValue, event) => {
+    const nodes = $el.querySelectorAll('.js-option');
+    [].forEach.call(nodes, (selectedValue) => selectedValue.classList.remove(isSelectedClass));
+    event.target.classList.add(isSelectedClass);
+    layer.setStyle(style, selectedValue);
+  }
 
   self.render = () => {
     const template = document.querySelector('#color-picker');
     const templateCopy = document.importNode(template.content, true);
     const $root = templateCopy.querySelector('.js-color-picker');
-    const isSelectedClass = '--is-selected';
 
     const colorOptions = options.map((color) => {
       const option = optionBuilder(layer, color);
       if (color === layer.getStyle()[style]) {
+
         option.classList.add(isSelectedClass);
       }
       $root.appendChild(option);
-      option.addEventListener('click', (event) => {
-        const nodes = $el.querySelectorAll('.js-option');
-        [].forEach.call(nodes, (color) => color.classList.remove(isSelectedClass));
-        event.target.classList.add(isSelectedClass);
-        layer.setStyle(style, color);
-      });
+      option.addEventListener('click', (event) => self.onClick(color, event));
     });
 
     $el.innerHTML = '';
@@ -328,10 +334,6 @@ const PropertiesView = function(layers, domId) {
   self.updateTitle = (dom) => dom.querySelector("#layer-on-properties").innerHTML = layer.getName();
 
   self.render = () => {
-    if (!layer) {
-      return;
-    }
-
     const template = document.querySelector('#properties-template');
     self.updateTitle(template.content);
 
@@ -367,10 +369,10 @@ const PropertiesView = function(layers, domId) {
 
 const ColorToPickBuilder = (layer, color, style) => {
   const colorTemplate = document.querySelector('#color-picker-option');
-    const colorOptionCopy = document.importNode(colorTemplate.content, true);
-    const option = colorOptionCopy.querySelector('.js-option');
-    option.style.backgroundColor = color;
-    return option;
+  const colorOptionCopy = document.importNode(colorTemplate.content, true);
+  const option = colorOptionCopy.querySelector('.js-option');
+  option.style.backgroundColor = color;
+  return option;
 }
 
 const ImageToPickBuilder = (layer, color, style) => {
@@ -412,8 +414,8 @@ CirclePropertiesView = function(layers, layer, $el) {
     PickerView(layer, templateCopy.querySelector('.js-fill-color-picker'), 'fillColor', COLORS, ColorToPickBuilder).render();
     NumberSelectorView(layer, templateCopy.querySelector('.js-radius'), 'radius', 8, 50).render();
     NumberSelectorView(layer, templateCopy.querySelector('.js-weight'), 'weight', 1, 20).render();
-    NumberSelectorView(layer, templateCopy.querySelector('.js-stroke-opacity'), 'opacity', 0, 1, 0.1).render();
-    NumberSelectorView(layer, templateCopy.querySelector('.js-fill-opacity'), 'fillOpacity', 0, 1, 0.1).render();
+    NumberSelectorView(layer, templateCopy.querySelector('.js-stroke-opacity'), 'opacity', 1, 1, 0.1).render();
+    NumberSelectorView(layer, templateCopy.querySelector('.js-fill-opacity'), 'fillOpacity', 1, 1, 0.1).render();
 
     $el.innerHTML = '';
     $el.appendChild(templateCopy);
