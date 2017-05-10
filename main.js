@@ -412,7 +412,8 @@ CirclePropertiesView = function(layers, layer, $el) {
     PickerView(layer, templateCopy.querySelector('.js-fill-color-picker'), 'fillColor', COLORS, ColorToPickBuilder).render();
     NumberSelectorView(layer, templateCopy.querySelector('.js-radius'), 'radius', 8, 50).render();
     NumberSelectorView(layer, templateCopy.querySelector('.js-weight'), 'weight', 1, 20).render();
-    NumberSelectorView(layer, templateCopy.querySelector('.js-opacity'), 'opacity', 0, 1, 0.1).render();
+    NumberSelectorView(layer, templateCopy.querySelector('.js-stroke-opacity'), 'opacity', 0, 1, 0.1).render();
+    NumberSelectorView(layer, templateCopy.querySelector('.js-fill-opacity'), 'fillOpacity', 0, 1, 0.1).render();
 
     $el.innerHTML = '';
     $el.appendChild(templateCopy);

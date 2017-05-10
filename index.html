@@ -85,31 +85,48 @@
     </template>
 
     <template id="circle-marker">
-        <div class="properties__pair">
-          <div class="properties__key">Fill color</div>
-          <div class="properties__value js-fill-color-picker"></div>
-        </div>
-
-        <div class="properties__pair">
-          <div class="properties__key">Stroke color</div>
-          <div class="properties__value js-stroke-color-picker"></div>
-        </div>
-
-        <div class="properties__pair">
-          <div class="properties__key">Radius</div>
-          <div class="properties__value js-radius"></div>
-        </div>
-
-        <div class="properties__pair">
-          <div class="properties__key">Weight</div>
-          <div class="properties__value js-weight"></div>
-        </div>
-
-        <div class="properties__pair">
-          <div class="properties__key">Opacity</div>
-          <div class="properties__value js-opacity"></div>
-        </div>
+      <div class="properties__pair">
+        <div class="properties__key">Radius</div>
+        <div class="properties__value js-radius"></div>
       </div>
+
+      <div class="properties__pair">
+        <div class="properties__key"></div>
+        <div class="properties__value properties__value--is-separator">Fill</div>
+      </div>
+
+      <div class="properties__pair">
+        <div class="properties__key">Color</div>
+        <div class="properties__value js-fill-color-picker"></div>
+      </div>
+
+      <div class="properties__pair">
+        <div class="properties__key">Opacity</div>
+        <div class="properties__value js-fill-opacity"></div>
+      </div>
+
+      <div class="properties__pair">
+        <div class="properties__key"></div>
+        <div class="properties__value properties__value--is-separator">Stroke</div>
+      </div>
+
+      <div class="properties__pair">
+        <div class="properties__key">Color</div>
+        <div class="properties__value js-stroke-color-picker"></div>
+      </div>
+
+      <div class="properties__pair">
+        <div class="properties__key">Opacity</div>
+        <div class="properties__value js-stroke-opacity"></div>
+      </div>
+
+      <div class="properties__pair">
+        <div class="properties__key">Weight</div>
+        <div class="properties__value js-weight"></div>
+      </div>
+
+      </div>
+
     </template>
     <template id="image-picker">
       <div class="image-picker js-image-picker">

@@ -223,6 +223,15 @@ body {
   vertical-align: middle;
 }
 
+.properties__value--is-separator {
+  letter-spacing: 0.6px;
+  font-size: 13px;
+
+  font-weight: bold;
+  text-align: left;
+  text-transform: uppercase;
+}
+
 .properties__group {
   display: table-row-group;
 }
