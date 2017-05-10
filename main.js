@@ -28,7 +28,7 @@ const Publisher = function() {
   self.subscribe = (observer) => handlers.push(observer);
   self.notifySuscriptors = (...args) => handlers.map((handler) => handler.notify(...args))
 
-    return self;
+  return self;
 }
 
 /*
@@ -47,10 +47,7 @@ const Layers = function() {
     self.notifySuscriptors('layer.added', layer);
   };
 
-  self.notify = (event, subject) => {
-    self.notifySuscriptors(event, subject)
-  }
-
+  self.notify = (event, subject) =>  self.notifySuscriptors(event, subject);
   self.map = (callback) => layers.map(callback);
   self.length = () => layers.length;
   self.getLayer = (index) => layers[index];
@@ -101,12 +98,7 @@ const Layer = function(features) {
     }
   };
 
-  self.getName = () => {
-    if (name) {
-      return name;
-    }
-    return getDefaultName();
-  }
+  self.getName = () => name ? name : getDefaultName();
 
   self.setStyle = (key, value) => {
     style[preferredStyle][key] = value;
@@ -281,6 +273,7 @@ const ListView = function(items, domId, itemBuilder) {
     renderedPoints.map((child) => append(child));
 
     const $el = document.getElementById(domId);
+
     if ($el) {
       $el.innerHTML = '';
       $el.appendChild(ul);
@@ -343,7 +336,7 @@ NumberSelectorView = function(layer, $el, style, maxSize, step = 1) {
 
   self.render = () => {
     const template = document.querySelector('#number-selector');
-    var templateCopy = document.importNode(template.content, true);
+    const templateCopy = document.importNode(template.content, true);
     const $input = templateCopy.querySelector('.js-input-number');
     $input.setAttribute('max',   maxSize);
     $input.setAttribute('value', layer.getStyles()[style]);
@@ -397,7 +390,7 @@ const PropertiesView = function(layers, domId) {
 
   self.render = () => {
     const template = document.querySelector('#properties-template');
-    var templateCopy = document.importNode(template.content, true);
+    const templateCopy = document.importNode(template.content, true);
     const root = document.getElementById(domId);
     root.innerHTML = '';
     root.appendChild(templateCopy);
@@ -438,7 +431,7 @@ ImagePropertiesView = function(layer, $el) {
 
   self.render = () => {
     const template = document.querySelector('#image-marker');
-    var templateCopy = document.importNode(template.content, true);
+    const templateCopy = document.importNode(template.content, true);
 
     PickerView(layer, templateCopy.querySelector('.js-image-picker'), 'image', IMAGES, ImageToPickBuilder).render();
 
@@ -472,7 +465,7 @@ CirclePropertiesView = function(layer, $el) {
     }
 
     const template = document.querySelector('#circle-marker');
-    var templateCopy = document.importNode(template.content, true);
+    const templateCopy = document.importNode(template.content, true);
 
     PickerView(layer, templateCopy.querySelector('.js-stroke-color-picker'), 'color', COLORS, ColorToPickBuilder).render();
     PickerView(layer, templateCopy.querySelector('.js-fill-color-picker'), 'fillColor', COLORS, ColorToPickBuilder).render();
@@ -499,13 +492,13 @@ const MainSidebar = function(layers, $el, features) {
   self.render = () => {
     const template = document.querySelector('#main-sidebar');
 
-    var templateCopy = document.importNode(template.content, true);
+    const templateCopy = document.importNode(template.content, true);
     $el.innerHTML = '';
     $el.appendChild(templateCopy);
     const $addLayer = document.querySelector('.js-add-layer');
     $addLayer.addEventListener('click', () => AddLayer(layers, $el, features).render());
 
-    let properties = PropertiesView(layers, 'properties');
+    const properties = PropertiesView(layers, 'properties');
     const propertiesLayer = layers.getLayer(layers.length() - 1);
     properties.changeLayer(propertiesLayer);
     const onLayerClick = (layer) => properties.changeLayer(layer);
@@ -523,29 +516,34 @@ const MainSidebar = function(layers, $el, features) {
  */
 AddLayer = function(layers, $el, features) {
   const self = new Object();
+  const selectedClass = 'item-list__item--is-selected';
   let selectedFeatures = [];
+
+  self.onToggleCallback = ($el, selectedFeature) => {
+    if ($el.classList.contains(selectedClass)) {
+      const indexToRemove = selectedFeatures.indexOf(selectedFeature);
+      selectedFeatures.splice(indexToRemove, 1);
+      $el.classList.remove(selectedClass);
+    } else {
+      $el.classList.add(selectedClass);
+      selectedFeatures.push(selectedFeature);
+    }
+
+    const selectFeatureViewBuilder = (feature) => SelectFeatureView(
+      feature,
+      (...args) => self.onToggleCallback(...args),
+      true
+    );
+    ListView(selectedFeatures, 'new-layer', selectFeatureViewBuilder).render();
+  };
 
   self.render = () => {
     const template = document.querySelector('#add-layer');
-    var templateCopy = document.importNode(template.content, true);
+    const templateCopy = document.importNode(template.content, true);
     $el.innerHTML = '';
     $el.appendChild(templateCopy);
 
-    const onToggleCallback = ($el, selectedFeature) => {
-      const selectedClass = 'item-list__item--is-selected';
-      if ($el.classList.contains(selectedClass)) {
-        const indexToRemove = selectedFeatures.indexOf(selectedFeature);
-        selectedFeatures.splice(indexToRemove, 1);
-        $el.classList.remove(selectedClass);
-      } else {
-        $el.classList.add(selectedClass);
-        selectedFeatures.push(selectedFeature);
-      }
-
-      const selectFeatureViewBuilder = (feature) => SelectFeatureView(feature, () => {}, true);
-      ListView(selectedFeatures, 'new-layer', selectFeatureViewBuilder).render();
-    };
-    const selectFeatureViewBuilder = (feature) => SelectFeatureView(feature, onToggleCallback);
+    const selectFeatureViewBuilder = (feature) => SelectFeatureView(feature, (...args) => self.onToggleCallback(...args));
     ListView(features, 'features', selectFeatureViewBuilder).render();
 
     const $cancel = document.querySelector('.js-cancel');
