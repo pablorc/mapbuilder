@@ -246,23 +246,23 @@ ListView.prototype.render = function() {
   }
 }
 
-// ColorPickerView
-const ColorPickerView = function(layer, $el, style, options, buildOption) {
+// PickerView
+const PickerView = function(layer, $el, style, options, optionBuilder) {
   this.layer = layer;
   this.$el = $el;
   this.style = style;
   this.options = options;
-  this.buildOption = buildOption;
+  this.optionBuilder = optionBuilder;
 }
 
-ColorPickerView.prototype.render = function() {
+PickerView.prototype.render = function() {
   const template = document.querySelector('#color-picker');
   const templateCopy = document.importNode(template.content, true);
   const $root = templateCopy.querySelector('.js-color-picker');
   const isSelectedClass = '--is-selected';
 
   const colorOptions = this.options.map((color) => {
-    const option = this.buildOption(this.layer, color);
+    const option = this.optionBuilder(this.layer, color);
     if (color === this.layer.getStyle()[this.style]) {
       option.classList.add(isSelectedClass);
     }
@@ -277,22 +277,6 @@ ColorPickerView.prototype.render = function() {
 
   this.$el.innerHTML = '';
   this.$el.appendChild(templateCopy);
-}
-
-const f = (layer, color, style) => {
-  const colorTemplate = document.querySelector('#color-picker-option');
-    const colorOptionCopy = document.importNode(colorTemplate.content, true);
-    const option = colorOptionCopy.querySelector('.js-option');
-    option.style.backgroundColor = color;
-    return option;
-}
-
-const f2 = (layer, color, style) => {
-  const colorTemplate = document.querySelector('#image-picker-option');
-    const colorOptionCopy = document.importNode(colorTemplate.content, true);
-    const option = colorOptionCopy.querySelector('.js-option');
-    option.setAttribute('src', color);
-    return option;
 }
 
 ImageSelector = function(layer, $el, style) {
@@ -402,6 +386,22 @@ PropertiesView.prototype.render = function() {
   setProperties(this.layer.getPreferredStyle());
 }
 
+const ColorToPickBuilder = (layer, color, style) => {
+  const colorTemplate = document.querySelector('#color-picker-option');
+    const colorOptionCopy = document.importNode(colorTemplate.content, true);
+    const option = colorOptionCopy.querySelector('.js-option');
+    option.style.backgroundColor = color;
+    return option;
+}
+
+const ImageToPickBuilder = (layer, color, style) => {
+  const colorTemplate = document.querySelector('#image-picker-option');
+  const colorOptionCopy = document.importNode(colorTemplate.content, true);
+  const option = colorOptionCopy.querySelector('.js-option');
+  option.setAttribute('src', color);
+  return option;
+}
+
 ImagePropertiesView = function(layers, layer, domId) {
   this.layers =  layers;
   this.layer = layer;
@@ -414,7 +414,7 @@ ImagePropertiesView.prototype.render = function() {
 
   const root = this.domId;
 
-  new ColorPickerView(this.layer, templateCopy.querySelector('.js-image-picker'), 'image', IMAGES, f2).render();
+  new PickerView(this.layer, templateCopy.querySelector('.js-image-picker'), 'image', IMAGES, ImageToPickBuilder).render();
 
   root.innerHTML = '';
   root.appendChild(templateCopy);
@@ -436,8 +436,8 @@ CirclePropertiesView.prototype.render = function() {
 
   const root = this.domId;
 
-  new ColorPickerView(this.layer, templateCopy.querySelector('.js-stroke-color-picker'), 'color', COLORS, f).render();
-  new ColorPickerView(this.layer, templateCopy.querySelector('.js-fill-color-picker'), 'fillColor', COLORS, f).render();
+  new PickerView(this.layer, templateCopy.querySelector('.js-stroke-color-picker'), 'color', COLORS, ColorToPickBuilder).render();
+  new PickerView(this.layer, templateCopy.querySelector('.js-fill-color-picker'), 'fillColor', COLORS, ColorToPickBuilder).render();
   new NumberSelectorView(this.layer, templateCopy.querySelector('.js-radius'), 'radius', 8, 50).render();
   new NumberSelectorView(this.layer, templateCopy.querySelector('.js-weight'), 'weight', 1, 20).render();
   new NumberSelectorView(this.layer, templateCopy.querySelector('.js-opacity'), 'opacity', 0, 1, 0.1).render();
@@ -513,7 +513,6 @@ AddLayer.prototype.render = function() {
 const start = (geojson) => {
   const features = geojson.features.map((feature) => new Feature(feature));
 
-  //new MainSidebar
   new AddLayer(layers, document.querySelector('.js-sidebar'), features).render();
 }
 
