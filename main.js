@@ -201,88 +201,75 @@ const SelectLayerView = function(layer, onClickCallback) {
 
 // SelectedFeatureView
 const SelectFeatureView = function(feature, onToggleCallback, selected) {
-  this.feature = feature;
-  this.onToggleCallback = onToggleCallback;
-  this.selected = selected;
-}
+  const that = new Object();
 
-const setSelected = function(selected) {
-  this.selected = selected;
-  if (this.li) {
-    this.render();
+  that.render = () => {
+    const li = document.createElement('li');
+    li.classList = 'item-list__item';
+    if (selected) {
+      li.classList.add('item-list__item--is-selected');
+    }
+    const textNode = document.createTextNode(feature.getName());
+    li.appendChild(textNode);
+    li.addEventListener('click', () => onToggleCallback(li, feature));
+    return li;
   }
-}
 
-SelectFeatureView.prototype.render = function() {
-  this.li = document.createElement('li');
-  this.li.classList = 'item-list__item';
-  if (this.selected) {
-    this.li.classList.add('item-list__item--is-selected');
-  }
-  const textNode = document.createTextNode(this.feature.getName());
-  this.li.appendChild(textNode);
-  this.li.addEventListener('click', () => this.onToggleCallback(this.li, this.feature));
-  return this.li;
+  return that;
 }
 
 // ListView
 const ListView = function(items, domId, itemBuilder) {
-  this.items = items;
-  this.domId = domId;
-  this.itemBuilder = itemBuilder;
+  const that = new Object();
+  items.subscribe && items.subscribe(that);
 
-  items.subscribe && items.subscribe(this);
-}
+  that.notify = (event, subject) => that.render();
 
-ListView.prototype.notify = function(event, subject) {
-  this.render();
-}
+  that.render = () => {
+    const renderedPoints = items.map((item) => itemBuilder(item).render());
+    const ul = document.createElement('ul');
+    ul.classList = 'item-list';
+    const append = (child) => ul.appendChild(child);
+    renderedPoints.map((child) => append(child));
 
-ListView.prototype.render = function() {
-  const renderedPoints = this.items.map((item) => this.itemBuilder(item).render());
-  const ul = document.createElement('ul');
-  ul.classList = 'item-list';
-  const append = (child) => ul.appendChild(child);
-  renderedPoints.map((child) => append(child));
-
-  const $el = document.getElementById(this.domId)
-  if ($el) {
-    $el.innerHTML = '';
-    $el.appendChild(ul);
+    const $el = document.getElementById(domId);
+    if ($el) {
+      $el.innerHTML = '';
+      $el.appendChild(ul);
+    }
   }
+
+  return that;
 }
 
 // PickerView
 const PickerView = function(layer, $el, style, options, optionBuilder) {
-  this.layer = layer;
-  this.$el = $el;
-  this.style = style;
-  this.options = options;
-  this.optionBuilder = optionBuilder;
-}
+  const that = new Object();
 
-PickerView.prototype.render = function() {
-  const template = document.querySelector('#color-picker');
-  const templateCopy = document.importNode(template.content, true);
-  const $root = templateCopy.querySelector('.js-color-picker');
-  const isSelectedClass = '--is-selected';
+  that.render = function() {
+    const template = document.querySelector('#color-picker');
+    const templateCopy = document.importNode(template.content, true);
+    const $root = templateCopy.querySelector('.js-color-picker');
+    const isSelectedClass = '--is-selected';
 
-  const colorOptions = this.options.map((color) => {
-    const option = this.optionBuilder(this.layer, color);
-    if (color === this.layer.getStyle()[this.style]) {
-      option.classList.add(isSelectedClass);
-    }
-    $root.appendChild(option);
-    option.addEventListener('click', (event) => {
-      const nodes = this.$el.querySelectorAll('.js-option');
-      [].forEach.call(nodes, (color) => color.classList.remove(isSelectedClass));
-      event.target.classList.add(isSelectedClass);
-      this.layer.setStyle(this.style, color);
+    const colorOptions = options.map((color) => {
+      const option = optionBuilder(layer, color);
+      if (color === layer.getStyle()[style]) {
+        option.classList.add(isSelectedClass);
+      }
+      $root.appendChild(option);
+      option.addEventListener('click', (event) => {
+        const nodes = $el.querySelectorAll('.js-option');
+        [].forEach.call(nodes, (color) => color.classList.remove(isSelectedClass));
+        event.target.classList.add(isSelectedClass);
+        layer.setStyle(style, color);
+      });
     });
-  });
 
-  this.$el.innerHTML = '';
-  this.$el.appendChild(templateCopy);
+    $el.innerHTML = '';
+    $el.appendChild(templateCopy);
+  }
+  return that;
 }
 
 ImageSelector = function(layer, $el, style) {
@@ -473,7 +460,7 @@ MainSidebar.prototype.render = function() {
   this.properties.changeLayer(propertiesLayer);
   const onLayerClick = (layer) => this.properties.changeLayer(layer);
   const layerViewBuilder = (layer) => SelectLayerView(layer, onLayerClick);
-  new ListView(layers, 'layers', layerViewBuilder).render();
+  ListView(layers, 'layers', layerViewBuilder).render();
 }
 
 AddLayer = function(layers, $el, features) {
@@ -500,11 +487,11 @@ AddLayer.prototype.render = function() {
       this.selectedFeatures.push(selectedFeature);
     }
 
-    const selectFeatureViewBuilder = (feature) => new SelectFeatureView(feature, () => {}, true);
-    new ListView(this.selectedFeatures, 'new-layer', selectFeatureViewBuilder).render();
+    const selectFeatureViewBuilder = (feature) => SelectFeatureView(feature, () => {}, true);
+    ListView(this.selectedFeatures, 'new-layer', selectFeatureViewBuilder).render();
   };
-  const selectFeatureViewBuilder = (feature) => new SelectFeatureView(feature, onToggleCallback);
-  new ListView(this.features, 'features', selectFeatureViewBuilder).render();
+  const selectFeatureViewBuilder = (feature) => SelectFeatureView(feature, onToggleCallback);
+  ListView(this.features, 'features', selectFeatureViewBuilder).render();
 
   const $cancel = document.querySelector('.js-cancel');
   $cancel.addEventListener('click', () => new MainSidebar(this.layers, this.$el, this.features).render());
