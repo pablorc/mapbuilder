@@ -336,12 +336,17 @@ NumberSelectorView = function(layer, $el, style, maxSize, step = 1) {
   self.render = () => {
     self.renderFromTemplate('#number-selector', $el);
 
-    const $input = document.querySelector('.js-input-number');
+    const $input = $el.querySelector('.js-input-number');
+    console.log(style, maxSize, step);
+    console.log($input);
     $input.setAttribute('max',   maxSize);
     $input.setAttribute('value', layer.getStyles()[style]);
     $input.setAttribute('step',  step);
+    console.log($input);
+    console.log('---');
 
     $input.addEventListener('input', () => {
+      console.log(layer, style, $input.value);
       layer.setStyle(style, $input.value);
     });
 
