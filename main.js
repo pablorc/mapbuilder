@@ -148,7 +148,6 @@ Map.prototype.render = function(domID) {
       id: this.id,
       accessToken: MAPBOX_ACCESS_TOKEN
       }).addTo(this.map);
-  L.marker([50.505, 30.57], {icon: this.icons()['png/plane.png']}).addTo(this.map);
 };
 
 Map.prototype.prepareFeature = function(latlng, layer) {
@@ -290,7 +289,6 @@ ImageSelector = function(layer, $el, style) {
 }
 
 ImageSelector.prototype.render = function() {
-  return;
   const template = document.querySelector('#image-picker');
   const templateCopy = document.importNode(template.content, true);
   const $root = templateCopy.querySelector('.js-image-picker');
