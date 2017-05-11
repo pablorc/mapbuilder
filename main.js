@@ -533,9 +533,13 @@ AddLayer = function(layers, $el, features) {
       domId: 'new-layer',
       multipleSelection: true,
       onDeselect: self.onDeselect,
-      initiallySelected: [selectedFeatures]
+      initiallySelected: selectedFeatures
     }).render();
   };
+
+  self.installSearchbox = () => {
+    const $searchbox = document.querySelector('.js-searchbox'); $searchbox.addEventListener('keyup', () => self.renderFeatures($searchbox.value));
+  }
 
   self.installCancelButton = () => {
     const $cancel = document.querySelector('.js-cancel');
@@ -561,13 +565,15 @@ AddLayer = function(layers, $el, features) {
     self.updatePreviewLayer();
   };
 
-  self.renderFeatures = () => {
+  self.renderFeatures = (keyword) => {
+    const filteredItems = keyword ? features.filter((feature) => feature.getName().startsWith(keyword)) : features;
     layerList = ListView({
-      items: features,
+      items: filteredItems,
       domId: 'features',
       multipleSelection: true,
       onSelect: self.onSelect,
-      onDeselect: self.onDeselect
+      onDeselect: self.onDeselect,
+      initiallySelected: selectedFeatures
     });
     layerList.render();
   }
@@ -579,6 +585,7 @@ AddLayer = function(layers, $el, features) {
 
     self.installCancelButton();
     self.installSaveButton();
+    self.installSearchbox();
 
   }
   return self;
