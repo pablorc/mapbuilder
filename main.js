@@ -227,7 +227,7 @@ const Map = function(layers, id) {
  * Represents an item of a ListView
  * TODO
  */
-const ListItem = function(item, selected = false, list) {
+const ListItem = function(item, selected, list) {
   const myItem = item;
   const self = new BaseView();
 
@@ -256,10 +256,15 @@ const ListItem = function(item, selected = false, list) {
  * Represents a component that list elements
  * TODO
  */
-const ListView = function(items, domId, multipleSelection = false, onSelect, onDeselect, initiallySelected = []) {
+const ListView = function(opts) {
+  const items = opts.items;
+  const domId = opts.domId;
+  const onSelect = opts.onSelect || function() {};
+  const onDeselect = opts.onDeselect || function() {};
+  const multipleSelection = opts.multipleSelection || false;
+  let selected = opts.initiallySelected || [];
   const self = new Object();
   items.subscribe && items.subscribe(self);
-  let selected = initiallySelected;
 
   self.notify = (event, subject) => self.render();
 
@@ -273,10 +278,7 @@ const ListView = function(items, domId, multipleSelection = false, onSelect, onD
     self.render();
   }
 
-  self.itemClicked = (item) => {
-      self.updateSelection(item);
-    //}
-  }
+  self.itemClicked = (item) => self.updateSelection(item);
 
   self.render = () => {
     const renderedPoints = items.map((item) => ListItem(item, selected.includes(item), self).render());
@@ -503,7 +505,13 @@ const MainSidebar = function(layers, $el, features) {
     const propertiesLayer = layers.getLayer(layers.length() - 1);
     properties.changeLayer(propertiesLayer);
 
-    layerList = ListView(layers, 'layers', false, self.onSelectLayer, self.onDeselect, [propertiesLayer]);
+    layerList = ListView({
+      items: layers,
+      domId: 'layers',
+      multipleSelection: false,
+      onSelect: self.onSelectLayer,
+      initiallySelected: [propertiesLayer]
+    });
     layerList.render();
   }
 
@@ -521,8 +529,14 @@ AddLayer = function(layers, $el, features) {
   const selectedClass = 'item-list__item--is-selected';
   let selectedFeatures = [];
 
-  self.onChangeLayer = ($el, selectedFeature) => {
-    ListView(selectedFeatures, 'new-layer', true).render();
+  self.updatePreviewLayer = () => {
+    ListView({
+      items: selectedFeatures,
+      domId: 'new-layer',
+      multipleSelection: true,
+      onDeselect: self.onDeselect,
+      initiallySelected: [selectedFeatures]
+    }).render();
   };
 
   self.installCancelButton = () => {
@@ -540,17 +554,24 @@ AddLayer = function(layers, $el, features) {
 
   self.onSelect = (feature) => {
     selectedFeatures.push(feature);
-    ListView(selectedFeatures, 'new-layer', true).render();
+    self.updatePreviewLayer();
   };
 
   self.onDeselect = (feature) => {
     const indexToRemove = selectedFeatures.indexOf(feature);
     selectedFeatures.splice(indexToRemove, 1);
-    ListView(selectedFeatures, 'new-layer', true).render();
+    self.updatePreviewLayer();
   };
 
   self.renderFeatures = () => {
-    ListView(features, 'features', true, self.onSelect, self.onDeselect).render();
+    layerList = ListView({
+      items: features,
+      domId: 'features',
+      multipleSelection: true,
+      onSelect: self.onSelect,
+      onDeselect: self.onDeselect
+    });
+    layerList.render();
   }
 
   self.render = () => {
