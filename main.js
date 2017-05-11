@@ -489,9 +489,7 @@ const MainSidebar = function(layers, $el, features) {
   let layerList;
 
 
-  self.onSelect = (layer) => {
-    properties.changeLayer(layer);
-  }
+  self.onSelectLayer = (layer) => properties.changeLayer(layer);
 
   self.onDeselect = () => {};
 
@@ -505,7 +503,7 @@ const MainSidebar = function(layers, $el, features) {
     const propertiesLayer = layers.getLayer(layers.length() - 1);
     properties.changeLayer(propertiesLayer);
 
-    layerList = ListView(layers, 'layers', false, self.onSelect, self.onDeselect, [propertiesLayer]);
+    layerList = ListView(layers, 'layers', false, self.onSelectLayer, self.onDeselect, [propertiesLayer]);
     layerList.render();
   }
 
