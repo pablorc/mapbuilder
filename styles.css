@@ -253,3 +253,13 @@ body {
 .image-picker__option.--is-selected {
   border-color: #333;
 }
+
+.searchbox {
+  margin: 5px;
+}
+
+.searchbox__input {
+  box-sizing: border-box;
+  padding: 5px;
+  width: 100%;
+}

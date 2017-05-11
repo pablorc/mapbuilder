@@ -2,8 +2,7 @@
 
 const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoicGFibG9yYyIsImEiOiJjajI3djNyOXAwMGR3MndzMWV2cjJicHo3In0.EIxpAD7wO3gmdkqt4ozKbg';
 const GEOJSON_URL = 'https://xavijam.carto.com/api/v2/sql?q=SELECT%20*%20FROM%20ne_10m_populated_places_simple&format=GeoJSON';
-const MAP_DOM_ID = 'map';
-const PREVIEW_MAP_DOM_ID = 'preview-map';
+const MAP_DOM_ID = 'map'; const PREVIEW_MAP_DOM_ID = 'preview-map';
 const COLORS = [
   '#179e99',
   '#1dadee',
@@ -265,7 +264,7 @@ const ListView = function(opts) {
   const onSelect = opts.onSelect || function() {};
   const onDeselect = opts.onDeselect || function() {};
   const multipleSelection = opts.multipleSelection || false;
-  let selected = opts.initiallySelected || [];
+  let selected = opts.initiallySelected ? opts.initiallySelected.slice() : [];
   items.subscribe && items.subscribe(self);
 
   self.notify = (event, subject) => self.render();
@@ -525,7 +524,7 @@ const MainSidebar = function(layers, $el, features) {
 AddLayer = function(layers, $el, features) {
   const self = new BaseView();
   const selectedClass = 'item-list__item--is-selected';
-  let selectedFeatures = [];
+  const selectedFeatures = [];
 
   self.updatePreviewLayer = () => {
     ListView({
@@ -565,8 +564,12 @@ AddLayer = function(layers, $el, features) {
     self.updatePreviewLayer();
   };
 
+  self.filterElementsToShow = (keyword) => {
+    return keyword ? features.filter((feature) => feature.getName().startsWith(keyword)) : features;
+  };
+
   self.renderFeatures = (keyword) => {
-    const filteredItems = keyword ? features.filter((feature) => feature.getName().startsWith(keyword)) : features;
+    const filteredItems = self.filterElementsToShow(keyword);
     layerList = ListView({
       items: filteredItems,
       domId: 'features',
@@ -592,7 +595,7 @@ AddLayer = function(layers, $el, features) {
 }
 
 const start = (geojson) => {
-  const features = geojson.features.map((feature) => Feature(feature));
+  const features = geojson.features.map((feature) => Feature(feature)).slice(1,10).slice(1,10);
 
   AddLayer(layers, document.querySelector('.js-sidebar'), features).render();
 }
