@@ -614,7 +614,7 @@ AddLayer = function(layers, $el, features) {
 }
 
 const start = (geojson) => {
-  const features = geojson.features.map((feature) => Feature(feature)).slice(1,10).slice(1,10);
+  const features = geojson.features.map((feature) => Feature(feature));
 
   AddLayer(layers, document.querySelector('.js-sidebar'), features).render();
 }
