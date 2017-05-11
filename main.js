@@ -131,6 +131,25 @@ const Layer = function(features) {
 
 ///// View objects
 
+/*
+ * Base class for Views
+ */
+const BaseView = function() {
+  const self = new Object();
+
+  self.renderFromTemplate = (templateId, root = null) => {
+    const template = document.querySelector(templateId);
+    const templateCopy = document.importNode(template.content, true);
+    if (root) {
+      root.innerHTML = '';
+      root.appendChild(templateCopy);
+    }
+    return templateCopy
+  }
+
+  return self;
+}
+
 /* Represents a Map
  * @param layers - The layers array to render
  * @param id - The Mapbox ID to print the tiles
@@ -209,8 +228,8 @@ const Map = function(layers, id) {
  * @param layer - The layer itself
  * @param onClickCallback - Callback to execute on click
  */
-const SelectLayerView = (layer, onClickCallback) => {
-  const self = new Object();
+const SelectLayerView = (layer, onClickCallback, selected) => {
+  const self = new BaseView();
   layer.subscribe(self);
 
   self.notify = (event, subject) => {
@@ -218,13 +237,15 @@ const SelectLayerView = (layer, onClickCallback) => {
   }
 
   self.render = () => {
-    // TODO
-    const li = document.createElement('li');
-    li.classList = 'item-list__item';
+    const $el = self.renderFromTemplate('#list-item');
     const textNode = document.createTextNode(layer.getName());
-    li.appendChild(textNode);
-    li.addEventListener('click', () => onClickCallback(layer));
-    return li;
+    const item = $el.querySelector('.js-item');
+    item.appendChild(textNode);
+    if (selected) {
+      item.classList.add('item-list__item--is-selected');
+    }
+    item.addEventListener('click', () => onClickCallback(layer));
+    return $el;
   }
 
   return self;
@@ -237,19 +258,18 @@ const SelectLayerView = (layer, onClickCallback) => {
  * @param selected - Boolean to know if the element is selected or don't
  */
 const SelectFeatureView = function(feature, onToggleCallback, selected) {
-  const self = new Object();
+  const self = new BaseView();
 
   self.render = () => {
-    // TODO
-    const li = document.createElement('li');
-    li.classList = 'item-list__item';
-    if (selected) {
-      li.classList.add('item-list__item--is-selected');
-    }
+    const $el = self.renderFromTemplate('#list-item');
     const textNode = document.createTextNode(feature.getName());
-    li.appendChild(textNode);
-    li.addEventListener('click', () => onToggleCallback(li, feature));
-    return li;
+    const item = $el.querySelector('.js-item');
+    item.appendChild(textNode);
+    if (selected) {
+      item.classList.add('item-list__item--is-selected');
+    }
+    item.addEventListener('click', () => onToggleCallback(item, feature));
+    return $el;
   }
 
   return self;
@@ -319,6 +339,7 @@ const PickerView = function(layer, $el, style, options, optionBuilder) {
       option.addEventListener('click', (event) => self.onClick(color, event));
     });
   }
+
   return self;
 }
 
@@ -337,16 +358,11 @@ NumberSelectorView = function(layer, $el, style, maxSize, step = 1) {
     self.renderFromTemplate('#number-selector', $el);
 
     const $input = $el.querySelector('.js-input-number');
-    console.log(style, maxSize, step);
-    console.log($input);
     $input.setAttribute('max',   maxSize);
     $input.setAttribute('value', layer.getStyles()[style]);
     $input.setAttribute('step',  step);
-    console.log($input);
-    console.log('---');
 
     $input.addEventListener('input', () => {
-      console.log(layer, style, $input.value);
       layer.setStyle(style, $input.value);
     });
 
@@ -402,10 +418,9 @@ const PropertiesView = function(layers, domId) {
 
     const $select = document.querySelector('.js-select');
     $select.value = layer.getPreferredStyle();
+    $select.addEventListener('change', () => self.renderProperties(layer));
 
     self.updateTitle();
-
-    $select.addEventListener('change', () => self.renderProperties(layer));
     self.renderProperties(layer);
   }
   return self;
@@ -473,21 +488,6 @@ CirclePropertiesView = function(layer, $el) {
 }
 
 /*
- * Base class for Views
- */
-const BaseView = function() {
-  const self = new Object();
-
-  self.renderFromTemplate = (templateId, root) => {
-    const template = document.querySelector(templateId);
-    const templateCopy = document.importNode(template.content, true);
-    root.innerHTML = '';
-    root.appendChild(templateCopy);
-  }
-
-  return self;
-}
-/*
  * Represents a Sidebar where layers can be modified by a PropertyView
  * @param layers - The list of layers
  * @param $el - The DOM element where the sidebar should be rendered
@@ -506,9 +506,10 @@ const MainSidebar = function(layers, $el, features) {
     const propertiesLayer = layers.getLayer(layers.length() - 1);
     properties.changeLayer(propertiesLayer);
     const onLayerClick = (layer) => properties.changeLayer(layer);
-    const layerViewBuilder = (layer) => SelectLayerView(layer, onLayerClick);
+    const layerViewBuilder = (layer) => SelectLayerView(layer, onLayerClick, true);
     ListView(layers, 'layers', layerViewBuilder).render();
   }
+
   return self;
 }
 
@@ -541,20 +542,32 @@ AddLayer = function(layers, $el, features) {
     ListView(selectedFeatures, 'new-layer', selectFeatureViewBuilder).render();
   };
 
-  self.render = () => {
-    self.renderFromTemplate('#add-layer', $el);
-
-    const selectFeatureViewBuilder = (feature) => SelectFeatureView(feature, (...args) => self.onToggleCallback(...args));
-    ListView(features, 'features', selectFeatureViewBuilder).render();
-
+  self.installCancelButton = () => {
     const $cancel = document.querySelector('.js-cancel');
     $cancel.addEventListener('click', () => MainSidebar(layers, $el, features).render());
+  }
 
+  self.installSaveButton = () => {
     const $save = document.querySelector('.js-save');
     $save.addEventListener('click', () => {
       layers.add(Layer(selectedFeatures));
       MainSidebar(layers, $el, features).render();
     });
+  }
+
+  self.renderFeatures = () => {
+    const selectFeatureViewBuilder = (feature) => SelectFeatureView(feature, (...args) => self.onToggleCallback(...args));
+    ListView(features, 'features', selectFeatureViewBuilder).render();
+  }
+
+  self.render = () => {
+    self.renderFromTemplate('#add-layer', $el);
+
+    self.renderFeatures();
+
+    self.installCancelButton();
+    self.installSaveButton();
+
   }
   return self;
 }
