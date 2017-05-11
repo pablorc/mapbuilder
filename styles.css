@@ -141,6 +141,7 @@ body {
 
 .sidebar__element--is-small {
   flex-shrink: 0;
+  min-height: 117px;
   max-height: 300px;
 }
 
@@ -259,4 +260,13 @@ body {
   box-sizing: border-box;
   padding: 5px;
   width: 100%;
+}
+
+.empty-placeholder {
+  margin: 50px 0;
+
+  color: var(--dark-gray);
+  font-size: 14px;
+  font-style: italic;
+  text-align: center;
 }

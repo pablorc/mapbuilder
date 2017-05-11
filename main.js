@@ -297,7 +297,7 @@ const ListView = function(opts) {
 
   self.itemClicked = (item) => self.updateSelection(item);
 
-  self.render = () => {
+  self.renderList = () => {
     const $el = document.getElementById(domId);
     self.renderFromTemplate('#list', $el);
     const renderedPoints = items.map((item) => ListItem(item, selected.includes(item), self).render());
@@ -305,6 +305,14 @@ const ListView = function(opts) {
     if ($el) {
       const $ul = $el.querySelector('.js-list');
       renderedPoints.map((child) => $ul.appendChild(child));
+    }
+  }
+
+  self.render = () => {
+    if (items.length === 0) {
+      self.renderFromTemplate('#empty-list', document.getElementById(domId));
+    } else {
+      self.renderList();
     }
   }
 
@@ -604,6 +612,7 @@ AddLayer = function(layers, $el, features) {
     self.renderFromTemplate('#add-layer', $el);
 
     self.renderFeatures();
+    self.updatePreviewLayer();
 
     self.installCancelButton();
     self.installSaveButton();
