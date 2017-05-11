@@ -57,7 +57,7 @@ const Layers = function() {
 
 /*
  * Represents a feature
- * @param attrs Info in geoJSON format
+ * @param attrs - Info in geoJSON format
  */
 const Feature = function(attrs) {
   const self = new Object();
@@ -120,6 +120,7 @@ const Layer = function(features) {
     };
   };
 
+  /* Select a preferred style (image or circle)*/
   self.setPreferredStyle = (styleType) => {
     preferredStyle = styleType;
     self.notifySuscriptors('layer.restyled', self);
@@ -138,6 +139,7 @@ const Layer = function(features) {
 const BaseView = function() {
   const self = new Object();
 
+ /* Renders a template given its ID inside a DOM element */
   self.renderFromTemplate = (templateId, root = null) => {
     const template = document.querySelector(templateId);
     const templateCopy = document.importNode(template.content, true);
@@ -226,7 +228,9 @@ const Map = function(layers, id) {
 
 /*
  * Represents an item of a ListView
- * TODO
+ * @param item - The item to be listed
+ * @param selected - True if the item is already selected
+ * @param list - ListView instance to notify changes
  */
 const ListItem = function(item, selected, list) {
   const myItem = item;
@@ -255,7 +259,7 @@ const ListItem = function(item, selected, list) {
 
 /*
  * Represents a component that list elements
- * TODO
+ * @param opts - A hash with all the configuration
  */
 const ListView = function(opts) {
   const self = new BaseView();
@@ -404,9 +408,6 @@ const PropertiesView = function(layers, domId) {
     }
   };
 
-  /*
-   * Updates the title with the layer's name
-   */
   self.updateTitle = () => document.querySelector('#layer-on-properties').innerHTML = layer.getName();
 
   self.renderProperties = (layer) => {
@@ -639,6 +640,7 @@ const AddLayer = function(layers, $el, features) {
   return self;
 };
 
+/* Represents an error placeholder */
 const Error = function() {
   const self = new BaseView();
 
@@ -648,6 +650,7 @@ const Error = function() {
   return self;
 };
 
+/* App initialization */
 const layers = Layers();
 const map = Map(layers, 'mapbox.streets');
 map.render(MAP_DOM_ID);
