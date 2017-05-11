@@ -269,13 +269,29 @@ const ListView = function(opts) {
 
   self.notify = (event, subject) => self.render();
 
-  self.updateSelection = (item) => {
-    if (!multipleSelection) {
-      onDeselect && selected && onDeselect(selected);
-      selected.splice(selected.indexOf(item), 1);
+  self.deselect = (item) => {
+    onDeselect(item);
+    selected.splice(selected.indexOf(item), 1);
+  };
+
+  self.updateMultipleSelection = (item) => {
+    if (selected.indexOf(item) > -1) {//Click on a selected item
+      self.deselect(item);
+    } else { // Select an item
+      selected.push(item);
+      onSelect && onSelect(item);
     }
+  }
+
+  self.updateNonMultipleSelection = (item) => {
+    self.deselect(selected[0]);
     selected.push(item);
     onSelect && onSelect(item);
+  }
+
+  self.updateSelection = (item) => {
+    const f = multipleSelection ? self.updateMultipleSelection : self.updateNonMultipleSelection;
+    f(item);
     self.render();
   }
 
