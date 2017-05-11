@@ -89,6 +89,7 @@ const Layer = function(features) {
     circle: {
       fillColor: COLORS[0],
       color: COLORS[1],
+      radius: 8,
       opacity: 1,
       fillOpacity: 1,
       weight: 1
@@ -288,7 +289,6 @@ const ListView = function(opts) {
 
     if ($el) {
       const $ul = $el.querySelector('.js-list');
-      console.log($ul);
       renderedPoints.map((child) => $ul.appendChild(child));
     }
   }
