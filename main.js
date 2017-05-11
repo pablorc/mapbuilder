@@ -275,21 +275,48 @@ const SelectFeatureView = function(feature, onToggleCallback, selected) {
   return self;
 }
 
+const ListItem = function(item, selected) {
+  const self = new BaseView();
+
+  self.render = () => {
+    console.log(item, selected);
+    const $el = self.renderFromTemplate('#list-item');
+    const textNode = document.createTextNode(item.getName());
+    const item = $el.querySelector('.js-item');
+    item.appendChild(textNode);
+
+    if (selected) {
+      item.classList.add('item-list__item--is-selected');
+    }
+
+    //item.addEventListener('click', () => onToggleCallback(item, feature));
+    return $el;
+  }
+
+  return self;
+}
+
 /*
  * Represents a component that list elements
  * @params items - The items to list
  * @params domId - the DOM element's ID where the component should be rendered
  * @params itemBuilder - A function that creates each item
  */
-const ListView = function(items, domId, itemBuilder) {
+const ListView = function(items, domId) {
   const self = new Object();
   items.subscribe && items.subscribe(self);
 
   self.notify = (event, subject) => self.render();
 
+  self.updateSelection = (item) => {
+    this.render();
+  }
+
   self.render = () => {
-    // TODO
-    const renderedPoints = items.map((item) => itemBuilder(item).render());
+    const renderedPoints = items.map((item) => {
+      console.log('??', item.getName());
+      return ListItem(item, false).render()
+    });
     const ul = document.createElement('ul');
     ul.classList = 'item-list';
     const append = (child) => ul.appendChild(child);
@@ -495,6 +522,14 @@ CirclePropertiesView = function(layer, $el) {
  */
 const MainSidebar = function(layers, $el, features) {
   const self = new BaseView();
+  let properties;
+  let layerList;
+
+
+  self.onLayerClick = (target, layer) => {//properties.changeLayer(layer);
+    layerList.updateSelection(layer);
+    properties.changeLayer(layer);
+  }
 
   self.render = () => {
     const root = self.renderFromTemplate('#main-sidebar', $el);
@@ -502,12 +537,12 @@ const MainSidebar = function(layers, $el, features) {
     const $addLayer = document.querySelector('.js-add-layer');
     $addLayer.addEventListener('click', () => AddLayer(layers, $el, features).render());
 
-    const properties = PropertiesView(layers, 'properties');
+    properties = PropertiesView(layers, 'properties');
     const propertiesLayer = layers.getLayer(layers.length() - 1);
     properties.changeLayer(propertiesLayer);
-    const onLayerClick = (layer) => properties.changeLayer(layer);
-    const layerViewBuilder = (layer) => SelectLayerView(layer, onLayerClick, true);
-    ListView(layers, 'layers', layerViewBuilder).render();
+    const layerViewBuilder = (layer, selected) => SelectFeatureView(layer, onLayerClick, selected);
+    layerList = ListView(layers, 'layers', layerViewBuilder)
+    layerList.render();
   }
 
   return self;
