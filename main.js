@@ -315,8 +315,7 @@ const ListView = function(opts) {
  * Represents a component to pick an option from a list of options
  * @param layer - The layer being modified
  * @param $el - The DOM element where the component should be rendered
- * @param style - The name of the style being modified
- * @param options - The list of values the style can have
+ * @param style - The name of the style being modified @param options - The list of values the style can have
  * @param optionBuilder - Function that creates each concrete option
  */
 const PickerView = function(layer, $el, style, options, optionBuilder) {
@@ -553,7 +552,8 @@ AddLayer = function(layers, $el, features) {
   };
 
   self.installSearchbox = () => {
-    const $searchbox = document.querySelector('.js-searchbox'); $searchbox.addEventListener('keyup', () => self.renderFeatures($searchbox.value));
+    const $searchbox = document.querySelector('.js-searchbox');
+    $searchbox.addEventListener('keyup', () => self.renderFeatures());
   }
 
   self.installCancelButton = () => {
@@ -578,14 +578,17 @@ AddLayer = function(layers, $el, features) {
     const indexToRemove = selectedFeatures.indexOf(feature);
     selectedFeatures.splice(indexToRemove, 1);
     self.updatePreviewLayer();
+    self.renderFeatures();
   };
 
-  self.filterElementsToShow = (keyword) => {
+  self.filterElementsToShow = () => {
+    const $searchbox = document.querySelector('.js-searchbox');
+    const keyword = $searchbox.value;
     return keyword ? features.filter((feature) => feature.getName().startsWith(keyword)) : features;
   };
 
-  self.renderFeatures = (keyword) => {
-    const filteredItems = self.filterElementsToShow(keyword);
+  self.renderFeatures = () => {
+    const filteredItems = self.filterElementsToShow();
     layerList = ListView({
       items: filteredItems,
       domId: 'features',
