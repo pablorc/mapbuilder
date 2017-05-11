@@ -639,6 +639,15 @@ const AddLayer = function(layers, $el, features) {
   return self;
 };
 
+const Error = function() {
+  const self = new BaseView();
+
+  self.render = () => {
+    self.renderFromTemplate('#error', document.querySelector('.js-sidebar'));
+  };
+  return self;
+};
+
 const layers = Layers();
 const map = Map(layers, 'mapbox.streets');
 map.render(MAP_DOM_ID);
@@ -647,4 +656,5 @@ self.fetch(GEOJSON_URL)
   .then((response) => response.json().then((geojson) => {
     const features = geojson.features.map((feature) => Feature(feature));
     AddLayer(layers, document.querySelector('.js-sidebar'), features).render();
-  }));
+  }))
+  .catch(() => Error().render());
