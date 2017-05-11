@@ -2,7 +2,8 @@
 
 const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoicGFibG9yYyIsImEiOiJjajI3djNyOXAwMGR3MndzMWV2cjJicHo3In0.EIxpAD7wO3gmdkqt4ozKbg';
 const GEOJSON_URL = 'https://xavijam.carto.com/api/v2/sql?q=SELECT%20*%20FROM%20ne_10m_populated_places_simple&format=GeoJSON';
-const MAP_DOM_ID = 'map'; const PREVIEW_MAP_DOM_ID = 'preview-map';
+const MAP_DOM_ID = 'map';
+const PREVIEW_MAP_DOM_ID = 'preview-map';
 const COLORS = [
   '#179e99',
   '#f0f0f0',
@@ -25,10 +26,10 @@ const Publisher = function() {
 
   const self = new Object();
   self.subscribe = (observer) => handlers.push(observer);
-  self.notifySuscriptors = (...args) => handlers.map((handler) => handler.notify(...args))
+  self.notifySuscriptors = (...args) => handlers.map((handler) => handler.notify(...args));
 
   return self;
-}
+};
 
 /*
  * Represent a collection of layers.
@@ -65,7 +66,7 @@ const Feature = function(attrs) {
   self.getName = () => attrs.properties.name;
 
   return self;
-}
+};
 
 /*
  * Represents a layer
@@ -103,12 +104,12 @@ const Layer = function(features) {
   self.setStyle = (key, value) => {
     style[preferredStyle][key] = value;
     self.notifySuscriptors('layer.restyled', self);
-  }
+  };
 
   self.setName = (newName) => {
     name = newName;
     self.notifySuscriptors('layer.renamed', self);
-  }
+  };
 
   self.getStyles = () => style[preferredStyle];
 
@@ -117,17 +118,17 @@ const Layer = function(features) {
       type: 'FeatureCollection',
       features: features.map((feature) => feature.toGeoJSON())
     };
-  }
+  };
 
-  self.setPreferredStyle = (style) => {
-    preferredStyle = style;
+  self.setPreferredStyle = (styleType) => {
+    preferredStyle = styleType;
     self.notifySuscriptors('layer.restyled', self);
-  }
+  };
 
   self.getPreferredStyle = () => preferredStyle;
 
   return self;
-}
+};
 
 ///// View objects
 
@@ -145,10 +146,10 @@ const BaseView = function() {
       root.appendChild(templateCopy);
     }
     return templateCopy;
-  }
+  };
 
   return self;
-}
+};
 
 /* Represents a Map
  * @param layers - The layers array to render
@@ -164,18 +165,18 @@ const Map = function(layers, id) {
   self.notify = (event, layer) => {
     const events = {
       'layer.added': () => self.addLayer(layer),
-      'layer.restyled': () => self.resetLayer(layer),
-    }
+      'layer.restyled': () => self.resetLayer(layer)
+    };
 
     if (event in events) {
       events[event]();
     }
-  }
+  };
 
-  self.resetLayer = (layer) => {
+  self.resetLayer = () => {
     map.eachLayer((layer) => layer !== baseLayer ? map.removeLayer(layer) : '');
     layers.map((layer) => self.addLayer(layer));
-  }
+  };
 
   self.icons = () => {
     return IMAGES.reduce((dict, filename) => {
@@ -189,14 +190,14 @@ const Map = function(layers, id) {
       });
       return dict;
     }, {});
-  }
+  };
 
   self.render = (domID) => {
-    map = L.map(domID).setView([5,0], 2);
+    map = L.map(domID).setView([5, 0], 2);
     baseLayer = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-        id: id,
-        accessToken: MAPBOX_ACCESS_TOKEN
-        }).addTo(map);
+      id: id,
+      accessToken: MAPBOX_ACCESS_TOKEN
+    }).addTo(map);
   };
 
   self.prepareFeature = (latlng, layer) => {
@@ -212,7 +213,7 @@ const Map = function(layers, id) {
     } else {
       return L.marker(latlng, { icon: self.icons()[style.image] });
     }
-  }
+  };
 
   self.addLayer = (layer) => {
     L.geoJSON(layer.toGeoJSON(), {
@@ -233,24 +234,24 @@ const ListItem = function(item, selected, list) {
 
   self.onClick = () => {
     list.itemClicked(myItem);
-  }
+  };
 
   self.render = () => {
     const $el = self.renderFromTemplate('#list-item');
     const textNode = document.createTextNode(myItem.getName());
-    const item = $el.querySelector('.js-item');
-    item.appendChild(textNode);
+    const $item = $el.querySelector('.js-item');
+    $item.appendChild(textNode);
 
     if (selected) {
-      item.classList.add('item-list__item--is-selected');
+      $item.classList.add('item-list__item--is-selected');
     }
 
-    item.addEventListener('click', self.onClick)
+    $item.addEventListener('click', self.onClick);
     return $el;
-  }
+  };
 
   return self;
-}
+};
 
 /*
  * Represents a component that list elements
@@ -267,7 +268,7 @@ const ListView = function(opts) {
   let selected = opts.initiallySelected ? opts.initiallySelected.slice() : [];
   items.subscribe && items.subscribe(self);
 
-  self.notify = (event, subject) => self.render();
+  self.notify = () => self.render();
 
   self.deselect = (item) => {
     onDeselect(item);
@@ -275,25 +276,25 @@ const ListView = function(opts) {
   };
 
   self.updateMultipleSelection = (item) => {
-    if (selected.indexOf(item) > -1) {//Click on a selected item
+    if (selected.indexOf(item) > -1) { //Click on a selected item
       self.deselect(item);
     } else { // Select an item
       selected.push(item);
       onSelect && onSelect(item);
     }
-  }
+  };
 
   self.updateNonMultipleSelection = (item) => {
     self.deselect(selected[0]);
     selected.push(item);
     onSelect && onSelect(item);
-  }
+  };
 
   self.updateSelection = (item) => {
     const f = multipleSelection ? self.updateMultipleSelection : self.updateNonMultipleSelection;
     f(item);
     self.render();
-  }
+  };
 
   self.itemClicked = (item) => self.updateSelection(item);
 
@@ -306,7 +307,7 @@ const ListView = function(opts) {
       const $ul = $el.querySelector('.js-list');
       renderedPoints.map((child) => $ul.appendChild(child));
     }
-  }
+  };
 
   self.render = () => {
     if (items.length === 0) {
@@ -314,10 +315,10 @@ const ListView = function(opts) {
     } else {
       self.renderList();
     }
-  }
+  };
 
   return self;
-}
+};
 
 /*
  * Represents a component to pick an option from a list of options
@@ -332,17 +333,17 @@ const PickerView = function(layer, $el, style, options, optionBuilder) {
 
   self.onClick = (selectedValue, event) => {
     const nodes = $el.querySelectorAll('.js-option');
-    [].forEach.call(nodes, (selectedValue) => selectedValue.classList.remove(isSelectedClass));
+    [].forEach.call(nodes, (node) => node.classList.remove(isSelectedClass));
     event.target.classList.add(isSelectedClass);
     layer.setStyle(style, selectedValue);
-  }
+  };
 
   self.render = () => {
     self.renderFromTemplate('#color-picker', $el);
     const $root = document.querySelector('.js-color-picker');
 
-    const colorOptions = options.map((color) => {
-      const option = optionBuilder(layer, color);
+    options.map((color) => {
+      const option = optionBuilder(color);
       if (color === layer.getStyles()[style]) {
 
         option.classList.add(isSelectedClass);
@@ -350,10 +351,10 @@ const PickerView = function(layer, $el, style, options, optionBuilder) {
       $root.appendChild(option);
       option.addEventListener('click', (event) => self.onClick(color, event));
     });
-  }
+  };
 
   return self;
-}
+};
 
 /*
  * Represents a component to select a number inside a range
@@ -363,7 +364,7 @@ const PickerView = function(layer, $el, style, options, optionBuilder) {
  * @param maxSize - Upper limit for the value selected
  * @param step - Value for the step attribute @ HTML. 1 by default
  */
-NumberSelectorView = function(layer, $el, style, maxSize, step = 1) {
+const NumberSelectorView = function(layer, $el, style, maxSize, step = 1) {
   const self = new BaseView();
 
   self.render = () => {
@@ -378,9 +379,9 @@ NumberSelectorView = function(layer, $el, style, maxSize, step = 1) {
       layer.setStyle(style, $input.value);
     });
 
-  }
+  };
   return self;
-}
+};
 
 /*
  * Represents the complete group of properties that a layer can modify
@@ -395,18 +396,18 @@ const PropertiesView = function(layers, domId) {
   self.changeLayer = (newLayer) => {
     layer = newLayer;
     self.render();
-  }
+  };
 
-  self.notify = (event, layer) => {
+  self.notify = (event) => {
     if (event === 'layer.renamed') {
       self.updateTitle();
     }
-  }
+  };
 
   /*
    * Updates the title with the layer's name
    */
-  self.updateTitle = () => document.querySelector("#layer-on-properties").innerHTML = layer.getName();
+  self.updateTitle = () => document.querySelector('#layer-on-properties').innerHTML = layer.getName();
 
   self.renderProperties = (layer) => {
     const $select = document.querySelector('.js-select');
@@ -416,7 +417,7 @@ const PropertiesView = function(layers, domId) {
     } else {
       CirclePropertiesView(layer, document.querySelector('.js-properties-marker')).render();
     }
-  }
+  };
 
   self.render = () => {
     const $el = document.getElementById(domId);
@@ -434,52 +435,52 @@ const PropertiesView = function(layers, domId) {
 
     self.updateTitle();
     self.renderProperties(layer);
-  }
+  };
   return self;
-}
+};
 
 /*
  * Represents a component where all the icon marker's properties can be modified
  * @params layer - The layer to modify
  * @param $el - The DOM element where it should be rendered
  */
-ImagePropertiesView = function(layer, $el) {
+const ImagePropertiesView = function(layer, $el) {
   const self = new BaseView();
 
   /* Method to build each image to render inside the Picker element */
-  const ImageToPickBuilder = (layer, color, style) => {
+  const ImageToPickBuilder = (color) => {
     const colorTemplate = document.querySelector('#image-picker-option');
     const colorOptionCopy = document.importNode(colorTemplate.content, true);
     const option = colorOptionCopy.querySelector('.js-option');
     option.setAttribute('src', color);
     return option;
-  }
+  };
 
   self.render = () => {
     self.renderFromTemplate('#image-marker', $el);
 
     PickerView(layer, document.querySelector('.js-image-picker'), 'image', IMAGES, ImageToPickBuilder).render();
-  }
+  };
 
   return self;
-}
+};
 
 /*
  * Represents a component where all the circle marker's properties can be modified
  * @params layer - The layer to modify
  * @param $el - The DOM element where it should be rendered
  */
-CirclePropertiesView = function(layer, $el) {
+const CirclePropertiesView = function(layer, $el) {
   const self = new BaseView();
 
   /* Function to build each color to render inside the Picker element */
-  const ColorToPickBuilder = (layer, color, style) => {
+  const ColorToPickBuilder = (color) => {
     const colorTemplate = document.querySelector('#color-picker-option');
     const colorOptionCopy = document.importNode(colorTemplate.content, true);
     const option = colorOptionCopy.querySelector('.js-option');
     option.style.backgroundColor = color;
     return option;
-  }
+  };
 
   self.render = () => {
     if (!layer) {
@@ -495,9 +496,9 @@ CirclePropertiesView = function(layer, $el) {
     NumberSelectorView(layer, document.querySelector('.js-stroke-opacity'), 'opacity', 1, 0.1).render();
     NumberSelectorView(layer, document.querySelector('.js-fill-opacity'), 'fillOpacity', 1, 0.1).render();
 
-  }
+  };
   return self;
-}
+};
 
 /*
  * Represents a Sidebar where layers can be modified by a PropertyView
@@ -510,13 +511,12 @@ const MainSidebar = function(layers, $el, features) {
   let properties;
   let layerList;
 
-
   self.onSelectLayer = (layer) => properties.changeLayer(layer);
 
   self.onDeselect = () => {};
 
   self.render = () => {
-    const root = self.renderFromTemplate('#main-sidebar', $el);
+    self.renderFromTemplate('#main-sidebar', $el);
 
     const $addLayer = document.querySelector('.js-add-layer');
     $addLayer.addEventListener('click', () => AddLayer(layers, $el, features).render());
@@ -533,10 +533,10 @@ const MainSidebar = function(layers, $el, features) {
       initiallySelected: [propertiesLayer]
     });
     layerList.render();
-  }
+  };
 
   return self;
-}
+};
 
 /*
  * Represents a sidebar component where a new layer can be created
@@ -544,10 +544,10 @@ const MainSidebar = function(layers, $el, features) {
  * @param $el - The DOM element where the sidebar should be rendered
  * @param features - The complete list of features that can be used
  */
-AddLayer = function(layers, $el, features) {
+const AddLayer = function(layers, $el, features) {
   const self = new BaseView();
-  const selectedClass = 'item-list__item--is-selected';
   const selectedFeatures = [];
+  let layerList;
 
   self.updatePreviewLayer = () => {
     ListView({
@@ -562,12 +562,12 @@ AddLayer = function(layers, $el, features) {
   self.installSearchbox = () => {
     const $searchbox = document.querySelector('.js-searchbox');
     $searchbox.addEventListener('keyup', () => self.renderFeatures());
-  }
+  };
 
   self.installCancelButton = () => {
     const $cancel = document.querySelector('.js-cancel');
     $cancel.addEventListener('click', () => MainSidebar(layers, $el, features).render());
-  }
+  };
 
   self.installSaveButton = () => {
     const $save = document.querySelector('.js-save');
@@ -575,7 +575,7 @@ AddLayer = function(layers, $el, features) {
       layers.add(Layer(selectedFeatures));
       MainSidebar(layers, $el, features).render();
     });
-  }
+  };
 
   self.onSelect = (feature) => {
     selectedFeatures.push(feature);
@@ -608,25 +608,21 @@ AddLayer = function(layers, $el, features) {
       initiallySelected: selectedFeatures
     });
     layerList.render();
-  }
+  };
 
   self.validateButtons = () => {
-    console.log(layers.length());
     if (layers.length() === 0) {
-      console.log($el.querySelector('.js-cancel'));
       $el.querySelector('.js-cancel').classList.add('u-hidden');
     } else {
       $el.querySelector('.js-cancel').classList.remove('u-hidden');
     }
 
-    console.log(selectedFeatures.length);
     if (selectedFeatures.length === 0) {
-      console.log($el.querySelector('.js-save'));
       $el.querySelector('.js-save').classList.add('button--is-disabled');
     } else {
       $el.querySelector('.js-save').classList.remove('button--is-disabled');
     }
-  }
+  };
 
   self.render = () => {
     self.renderFromTemplate('#add-layer', $el);
@@ -639,19 +635,16 @@ AddLayer = function(layers, $el, features) {
     self.installSaveButton();
     self.installSearchbox();
 
-  }
+  };
   return self;
-}
-
-const start = (geojson) => {
-  const features = geojson.features.map((feature) => Feature(feature));
-
-  AddLayer(layers, document.querySelector('.js-sidebar'), features).render();
-}
+};
 
 const layers = Layers();
 const map = Map(layers, 'mapbox.streets');
 map.render(MAP_DOM_ID);
 
 self.fetch(GEOJSON_URL)
-  .then((response) => response.json().then(start));
+  .then((response) => response.json().then((geojson) => {
+    const features = geojson.features.map((feature) => Feature(feature));
+    AddLayer(layers, document.querySelector('.js-sidebar'), features).render();
+  }));
