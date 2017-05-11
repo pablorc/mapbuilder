@@ -5,7 +5,7 @@ const GEOJSON_URL = 'https://xavijam.carto.com/api/v2/sql?q=SELECT%20*%20FROM%20
 const MAP_DOM_ID = 'map'; const PREVIEW_MAP_DOM_ID = 'preview-map';
 const COLORS = [
   '#179e99',
-  '#1dadee',
+  '#f0f0f0',
   '#7f4196',
   '#29dfd7',
   '#afd634',
