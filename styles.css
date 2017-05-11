@@ -3,20 +3,16 @@
   --properties-height: 300px;
   --general-margin: 5px;
 
-  --palette-1: #179e99;
-  --palette-2: #1dadee;
-  --palette-3: #7f4196;
-  --palette-4: #29dfd7;
-  --palette-5: #afd634;
-  --palette-6: #fecb30;
-  --palette-7: #df5290;
-  --palette-8: #fd7430;
+  --gray: #f0f0f0;
+  --dark-gray: #333;
+  --white: #fff;
+  --primary-color: #0eac53;
 }
 
 body {
   margin: 0;
 
-  background-color: #f0f0f0;
+  background-color: var(--gray);
   font-family: 'Lato', sans-serif;
 }
 
@@ -43,7 +39,7 @@ body {
   height: calc(100% - var(--properties-height) - var(--general-margin) * 2);
   width: 100%;
 
-  box-shadow: 0px 0px 2px 1px #bbb;
+  box-shadow: 0px 0px 2px 1px var(--gray);
 }
 
 .builder__main-area__properties {
@@ -51,8 +47,8 @@ body {
   margin-top: var(--general-margin);
   width: 100%;
 
-  background-color: #fff;
-  box-shadow: 0px 0px 25px 2px #bbb;
+  background-color: var(--white);
+  box-shadow: 0px 0px 25px 2px var(--gray);
 }
 
 .builder__main-area__properties:empty {
@@ -66,8 +62,8 @@ body {
   margin: var(--general-margin);
   max-height: calc(100vh - var(--general-margin) * 2);
 
-  background-color: #fff;
-  box-shadow: 0px 0px 25px 2px #bbb;
+  background-color: var(--white);
+  box-shadow: 0px 0px 25px 2px var(--gray);
 }
 
 .color-picker {
@@ -89,7 +85,7 @@ body {
 }
 
 .color-picker__option__color.--is-selected {
-  border-color: #333;
+  border-color: var(--dark-gray);
 }
 
 .item-list {
@@ -100,13 +96,13 @@ body {
 }
 
 .item-list__item {
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--gray);
   font-size: 14px;
   margin: 3px 0;
   padding: 5px;
 
   border-radius: 4px;
-  color: #333;
+  color: var(--dark-gray);
   cursor: pointer;
 }
 
@@ -180,20 +176,21 @@ body {
 }
 
 .button {
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--gray);
   margin: 5px;
   padding: 10px 0;
 
-  background-color: #0eac53;
+  background-color: var(--primary-color);
   border-radius: 4px;
-  color: #fff;
+  color: var(--white);
   cursor: pointer;
 }
 
 .button--is-secondary {
-  background-color: white;
-  color: #333;
   border: 0 none;
+  color: var(--dark-gray);
+
+  background-color: white;
 }
 
 .properties {
@@ -205,8 +202,8 @@ body {
 
 .properties__pair {
   display: table-row;
-  border-top: 1px solid #f0f0f0;
-  border-bottom: 1px solid #f0f0f0;
+  border-top: 1px solid var(--gray);
+  border-bottom: 1px solid var(--gray);
 }
 
 .properties__key {
@@ -218,7 +215,7 @@ body {
 }
 
 .properties__value {
-  border-left: 1px solid #f0f0f0;
+  border-left: 1px solid var(--gray);
   display: table-cell;
   text-align: right;
   padding: 10px;
@@ -251,7 +248,7 @@ body {
 }
 
 .image-picker__option.--is-selected {
-  border-color: #333;
+  border-color: var(--dark-gray);
 }
 
 .searchbox {
