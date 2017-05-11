@@ -580,6 +580,7 @@ AddLayer = function(layers, $el, features) {
   self.onSelect = (feature) => {
     selectedFeatures.push(feature);
     self.updatePreviewLayer();
+    self.validateButtons();
   };
 
   self.onDeselect = (feature) => {
@@ -587,6 +588,7 @@ AddLayer = function(layers, $el, features) {
     selectedFeatures.splice(indexToRemove, 1);
     self.updatePreviewLayer();
     self.renderFeatures();
+    self.validateButtons();
   };
 
   self.filterElementsToShow = () => {
@@ -608,11 +610,30 @@ AddLayer = function(layers, $el, features) {
     layerList.render();
   }
 
+  self.validateButtons = () => {
+    console.log(layers.length());
+    if (layers.length() === 0) {
+      console.log($el.querySelector('.js-cancel'));
+      $el.querySelector('.js-cancel').classList.add('u-hidden');
+    } else {
+      $el.querySelector('.js-cancel').classList.remove('u-hidden');
+    }
+
+    console.log(selectedFeatures.length);
+    if (selectedFeatures.length === 0) {
+      console.log($el.querySelector('.js-save'));
+      $el.querySelector('.js-save').classList.add('button--is-disabled');
+    } else {
+      $el.querySelector('.js-save').classList.remove('button--is-disabled');
+    }
+  }
+
   self.render = () => {
     self.renderFromTemplate('#add-layer', $el);
 
     self.renderFeatures();
     self.updatePreviewLayer();
+    self.validateButtons();
 
     self.installCancelButton();
     self.installSaveButton();
