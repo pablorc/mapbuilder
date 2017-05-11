@@ -144,7 +144,7 @@ const BaseView = function() {
       root.innerHTML = '';
       root.appendChild(templateCopy);
     }
-    return templateCopy
+    return templateCopy;
   }
 
   return self;
@@ -257,13 +257,14 @@ const ListItem = function(item, selected, list) {
  * TODO
  */
 const ListView = function(opts) {
+  const self = new BaseView();
+
   const items = opts.items;
   const domId = opts.domId;
   const onSelect = opts.onSelect || function() {};
   const onDeselect = opts.onDeselect || function() {};
   const multipleSelection = opts.multipleSelection || false;
   let selected = opts.initiallySelected || [];
-  const self = new Object();
   items.subscribe && items.subscribe(self);
 
   self.notify = (event, subject) => self.render();
@@ -281,17 +282,14 @@ const ListView = function(opts) {
   self.itemClicked = (item) => self.updateSelection(item);
 
   self.render = () => {
-    const renderedPoints = items.map((item) => ListItem(item, selected.includes(item), self).render());
-    const ul = document.createElement('ul');
-    ul.classList = 'item-list';
-    const append = (child) => ul.appendChild(child);
-    renderedPoints.map((child) => append(child));
-
     const $el = document.getElementById(domId);
+    self.renderFromTemplate('#list', $el);
+    const renderedPoints = items.map((item) => ListItem(item, selected.includes(item), self).render());
 
     if ($el) {
-      $el.innerHTML = '';
-      $el.appendChild(ul);
+      const $ul = $el.querySelector('.js-list');
+      console.log($ul);
+      renderedPoints.map((child) => $ul.appendChild(child));
     }
   }
 
