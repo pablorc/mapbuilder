@@ -224,64 +224,20 @@ const Map = function(layers, id) {
 };
 
 /*
- * Represents a layer. Made to be used inside a ListView
- * @param layer - The layer itself
- * @param onClickCallback - Callback to execute on click
+ * Represents an item of a ListView
+ * TODO
  */
-const SelectLayerView = (layer, onClickCallback, selected) => {
+const ListItem = function(item, selected = false, list) {
+  const myItem = item;
   const self = new BaseView();
-  layer.subscribe(self);
 
-  self.notify = (event, subject) => {
-    self.render();
+  self.onClick = () => {
+    list.itemClicked(myItem);
   }
 
   self.render = () => {
     const $el = self.renderFromTemplate('#list-item');
-    const textNode = document.createTextNode(layer.getName());
-    const item = $el.querySelector('.js-item');
-    item.appendChild(textNode);
-    if (selected) {
-      item.classList.add('item-list__item--is-selected');
-    }
-    item.addEventListener('click', () => onClickCallback(layer));
-    return $el;
-  }
-
-  return self;
-}
-
-/*
- * Represents a feature. Made to be used inside a ListView
- * @param feature - The feature itself
- * @param onToggleCallback - Callback to execute on click
- * @param selected - Boolean to know if the element is selected or don't
- */
-const SelectFeatureView = function(feature, onToggleCallback, selected) {
-  const self = new BaseView();
-
-  self.render = () => {
-    const $el = self.renderFromTemplate('#list-item');
-    const textNode = document.createTextNode(feature.getName());
-    const item = $el.querySelector('.js-item');
-    item.appendChild(textNode);
-    if (selected) {
-      item.classList.add('item-list__item--is-selected');
-    }
-    item.addEventListener('click', () => onToggleCallback(item, feature));
-    return $el;
-  }
-
-  return self;
-}
-
-const ListItem = function(item, selected) {
-  const self = new BaseView();
-
-  self.render = () => {
-    console.log(item, selected);
-    const $el = self.renderFromTemplate('#list-item');
-    const textNode = document.createTextNode(item.getName());
+    const textNode = document.createTextNode(myItem.getName());
     const item = $el.querySelector('.js-item');
     item.appendChild(textNode);
 
@@ -289,7 +245,7 @@ const ListItem = function(item, selected) {
       item.classList.add('item-list__item--is-selected');
     }
 
-    //item.addEventListener('click', () => onToggleCallback(item, feature));
+    item.addEventListener('click', self.onClick)
     return $el;
   }
 
@@ -298,25 +254,32 @@ const ListItem = function(item, selected) {
 
 /*
  * Represents a component that list elements
- * @params items - The items to list
- * @params domId - the DOM element's ID where the component should be rendered
- * @params itemBuilder - A function that creates each item
+ * TODO
  */
-const ListView = function(items, domId) {
+const ListView = function(items, domId, multipleSelection = false, onSelect, onDeselect, initiallySelected = []) {
   const self = new Object();
   items.subscribe && items.subscribe(self);
+  let selected = initiallySelected;
 
   self.notify = (event, subject) => self.render();
 
   self.updateSelection = (item) => {
-    this.render();
+    if (!multipleSelection) {
+      onDeselect && selected && onDeselect(selected);
+      selected.splice(selected.indexOf(item), 1);
+    }
+    selected.push(item);
+    onSelect && onSelect(item);
+    self.render();
+  }
+
+  self.itemClicked = (item) => {
+      self.updateSelection(item);
+    //}
   }
 
   self.render = () => {
-    const renderedPoints = items.map((item) => {
-      console.log('??', item.getName());
-      return ListItem(item, false).render()
-    });
+    const renderedPoints = items.map((item) => ListItem(item, selected.includes(item), self).render());
     const ul = document.createElement('ul');
     ul.classList = 'item-list';
     const append = (child) => ul.appendChild(child);
@@ -526,10 +489,11 @@ const MainSidebar = function(layers, $el, features) {
   let layerList;
 
 
-  self.onLayerClick = (target, layer) => {//properties.changeLayer(layer);
-    layerList.updateSelection(layer);
+  self.onSelect = (layer) => {
     properties.changeLayer(layer);
   }
+
+  self.onDeselect = () => {};
 
   self.render = () => {
     const root = self.renderFromTemplate('#main-sidebar', $el);
@@ -540,8 +504,8 @@ const MainSidebar = function(layers, $el, features) {
     properties = PropertiesView(layers, 'properties');
     const propertiesLayer = layers.getLayer(layers.length() - 1);
     properties.changeLayer(propertiesLayer);
-    const layerViewBuilder = (layer, selected) => SelectFeatureView(layer, onLayerClick, selected);
-    layerList = ListView(layers, 'layers', layerViewBuilder)
+
+    layerList = ListView(layers, 'layers', false, self.onSelect, self.onDeselect, [propertiesLayer]);
     layerList.render();
   }
 
@@ -559,22 +523,8 @@ AddLayer = function(layers, $el, features) {
   const selectedClass = 'item-list__item--is-selected';
   let selectedFeatures = [];
 
-  self.onToggleCallback = ($el, selectedFeature) => {
-    if ($el.classList.contains(selectedClass)) {
-      const indexToRemove = selectedFeatures.indexOf(selectedFeature);
-      selectedFeatures.splice(indexToRemove, 1);
-      $el.classList.remove(selectedClass);
-    } else {
-      $el.classList.add(selectedClass);
-      selectedFeatures.push(selectedFeature);
-    }
-
-    const selectFeatureViewBuilder = (feature) => SelectFeatureView(
-      feature,
-      (...args) => self.onToggleCallback(...args),
-      true
-    );
-    ListView(selectedFeatures, 'new-layer', selectFeatureViewBuilder).render();
+  self.onChangeLayer = ($el, selectedFeature) => {
+    ListView(selectedFeatures, 'new-layer', true).render();
   };
 
   self.installCancelButton = () => {
@@ -590,9 +540,19 @@ AddLayer = function(layers, $el, features) {
     });
   }
 
+  self.onSelect = (feature) => {
+    selectedFeatures.push(feature);
+    ListView(selectedFeatures, 'new-layer', true).render();
+  };
+
+  self.onDeselect = (feature) => {
+    const indexToRemove = selectedFeatures.indexOf(feature);
+    selectedFeatures.splice(indexToRemove, 1);
+    ListView(selectedFeatures, 'new-layer', true).render();
+  };
+
   self.renderFeatures = () => {
-    const selectFeatureViewBuilder = (feature) => SelectFeatureView(feature, (...args) => self.onToggleCallback(...args));
-    ListView(features, 'features', selectFeatureViewBuilder).render();
+    ListView(features, 'features', true, self.onSelect, self.onDeselect).render();
   }
 
   self.render = () => {
