@@ -1,7 +1,7 @@
 //// Settings
 
 const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoicGFibG9yYyIsImEiOiJjajI3djNyOXAwMGR3MndzMWV2cjJicHo3In0.EIxpAD7wO3gmdkqt4ozKbg';
-const GEOJSON_URL = 'https://xavijam.carto.com/api/v2/sql?q=SELECT%20*%20FROM%20ne_10m_populated_places_simple&format=GeoJSON';
+const GEOJSON_URL = '/mapbuilder/geojson.geojson';
 const MAP_DOM_ID = 'map';
 const PREVIEW_MAP_DOM_ID = 'preview-map';
 const COLORS = [
